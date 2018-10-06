@@ -1,0 +1,3 @@
+1. finish Dockerfile: install R and chronicler and all its dependencies
+
+2. install RStudio and make it runnable via Docker

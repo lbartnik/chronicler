@@ -1,0 +1,27 @@
+Package: chronicler
+Type: Package
+Title: Binary History for R
+Version: 0.1.0
+Authors@R: person("Lukasz", "Bartnik", email = "l.bartnik@gmail.com", role = c("aut", "cre"))
+Description: Meta-package that installs all dependencies needed to enable
+  history of binary R objects: data sets, models, plots, code.
+License: GPLv3 IT + file LICENSE
+URL: https://github.com/lbartnik/chronicler
+BugReports: https://github.com/lbartnik/chronicler/issues
+Imports:
+  glue
+Suggests:
+  testthat
+Collate:
+  'hello.R'
+Remotes:
+  lbartnik/browser,
+  lbartnik/defer,
+  lbartnik/matcher,
+  lbartnik/repository,
+  lbartnik/storage,
+  lbartnik/ui,
+  lbartnik/utilities
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
+Roxygen: list(markdown = TRUE)
