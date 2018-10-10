@@ -9,19 +9,26 @@ License: GPLv3 IT + file LICENSE
 URL: https://github.com/lbartnik/chronicler
 BugReports: https://github.com/lbartnik/chronicler/issues
 Imports:
-  glue
+  browser,
+  defer,
+  glue,
+  repository,
+  search,
+  storage,
+  ui,
+  utilities
 Suggests:
   testthat
 Collate:
   'hello.R'
 Remotes:
-  lbartnik/browser,
-  lbartnik/defer,
-  lbartnik/matcher,
-  lbartnik/repository,
-  lbartnik/storage,
-  lbartnik/ui,
-  lbartnik/utilities
+  github::lbartnik/browser,
+  github::lbartnik/defer,
+  github::lbartnik/repository,
+  github::lbartnik/search,
+  github::lbartnik/storage,
+  github::lbartnik/ui,
+  github::lbartnik/utilities
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 Roxygen: list(markdown = TRUE)

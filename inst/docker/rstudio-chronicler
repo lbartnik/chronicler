@@ -1,0 +1,18 @@
+#!/bin/bash
+
+DOCKER=$(which docker)
+if [ -z "${DOCKER}" ]; then
+  echo "cannot run Docker; is it installed?" >&2
+  exit 1
+fi
+
+X11_SOCKET=/tmp/.X11-unix
+if [ ! -d "${X11_SOCKET}" ]; then
+  echo "${X11_SOCKET} does not exist, cannot forward X11 display socket" >&2
+  exit 1
+fi
+
+CHRONICLER_IMAGE=chronicler
+
+${DOCKER} run -ti -e DISPLAY=$DISPLAY -v "${X11_SOCKET}:${X11_SOCKET}" "${CHRONICLER_IMAGE}"
+
