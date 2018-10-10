@@ -4,6 +4,7 @@ WORKDIR /tmp
 
 # silence dpkg
 ENV DEBIAN_FRONTEND noninteractive
+ENV LANG en_US.UTF-8
 
 RUN apt-get update && apt-get upgrade -y \
     \
@@ -28,8 +29,6 @@ RUN apt-get update && apt-get upgrade -y \
     \
     && locale-gen "en_US.UTF-8" \
     \
-    && LANG en_US.UTF-8 \
-    \
 # install tools
     && apt-get install -y curl vim mc \
     \
@@ -41,7 +40,10 @@ RUN apt-get update && apt-get upgrade -y \
     \
 # add a default user
     && adduser --disabled-password user \
-    && chown -R user /home/user/
+    && chown -R user /home/user/ \
+    && apt-get clean \
+    && rm -fr /tmp/*
+
 
 # install (known) dependencies for chronicler
 RUN R -e 'install.packages("devtools")' \
@@ -52,7 +54,8 @@ RUN R -e 'install.packages("devtools")' \
                                 "reshape2", "plyr", "stringr", "stringi", "bindr", "tidyr",\
                                 "bindrcpp", "pkgconfig", "plogr", "lubridate", "png", "proto",\
                                 "bmp", "tiff", "jpeg", "readbitmap", "downloader", "igraph",\
-                                "Cairo", "imager", "testthat", "knitr", "rmarkdown"))'
+                                "Cairo", "imager", "testthat", "knitr", "rmarkdown", "ggplot2"))' \
+    && rm -fr /tmp/*
 
 # install RStudio's dependencies
 RUN apt-get install -y libjpeg62 libssl1.0.0 libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 libxslt1.1 \
@@ -64,7 +67,9 @@ RUN apt-get install -y libjpeg62 libssl1.0.0 libgstreamer1.0-0 libgstreamer-plug
     \
 # configure RStudio
     && mkdir -p /home/user/.config/RStudio \
-    && mkdir -p /home/user/.rstudio-desktop/monitored/user-settings/
+    && mkdir -p /home/user/.rstudio-desktop/monitored/user-settings/ \
+    && apt-get clean
+
 COPY desktop.ini /home/user/.config/RStudio/
 COPY user-settings /home/user/.rstudio-desktop/monitored/user-settings/
 
@@ -73,10 +78,10 @@ USER user
 ENV HOME /home/user
 WORKDIR /home/user
 
-RUN R -e 'library(devtools); install_github("lbartnik/chronicler@full-docker-build")'
+RUN mkdir -p /home/user/R/x86_64-pc-linux-gnu-library/3.5 \
+    && R -e 'library(devtools); install_github("lbartnik/chronicler@full-docker-build")' \
+    && rm -fr /tmp/*
 
 # clean up
-RUN apt-get clean
-RUN rm -fr /tmp/*
 
 ENTRYPOINT [ "/usr/bin/rstudio" ]
