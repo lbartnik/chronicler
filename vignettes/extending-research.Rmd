@@ -1,0 +1,132 @@
+---
+title: "Extending the Research Tooling"
+author: "Lukasz A. Bartnik"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Extending the Research Tooling}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", prompt = FALSE, echo = TRUE)
+```
+
+
+## Extending the Research Process
+
+Repository that records everything and exposes the history of created
+artifacts through a query mechanism.
+
+
+
+## Abstract
+
+Recent development in the R community can be grouped as follows:
+extending and simplifying the programming interfaces (tidyverse)
+support for big data sets (e.g. interfaces to Spark)
+new algorithms to model interactions in data
+reproducible programming
+
+This paper explores a direction that to some extent overlaps with the
+last category: bookkeeping (recording user interactions and their
+results) and reporting (presenting the historical records back to the
+user) in a data project and.
+
+It starts with the premise that a considerable amount of time and effort
+in a data project is utilized on recording and browsing findings.
+
+The reproducible programming movement produced tools extremely useful
+when findings are to be reported for the sake of consumers other than
+the user who produced them in the first place.
+
+There seems to be a certain lack of tools, however, that server the
+purpose of reducing the operational burder on the researcher himself.
+
+It is important to note that in a project spanning over days or weeks,
+the task of reconstructing the context of certain questions stated and
+results obtained in a data project is not trivial and at least requires
+consideration and time.
+
+We also start with the premise that the most important aspect of any data
+project takes place in the mind of the researcher and takes the form of
+a narrative about the data: interactions and patterns present in the data,
+explanations of those patterns and interactions and ways of modelling them
+for the sake of predictions or forecasts.
+
+A researcher needs expected to maintain a record of his thoughts and ideas
+that can but doesn't have to reside together with the code and data.
+
+Typically, tools designed for other use cases are repurposed for this task:
+markdown notebooks, scripts with comments, sets of plots written to the
+filesystem, PDF reports, etc.
+
+Although these tools perform very well when it comes to reporting, using
+them to bootstrap another day of work is less straightforward: one needs
+to locate objects (data, plots) and code relevant to their ongoing work
+and then use them (collect, copy, re-run) as the starting point for the
+current part of the project.
+
+R has the basic support for bookkeeping: stores the history of commands,
+preserves the state of the session, implements serialization and deserialization
+of arbitrary objects (code, data, plots) in the filesystem. The meta level,
+however, that has to do with the relationships between these objects,
+as well as their relative importance are not recorded by these mechanisms.
+
+The R user is expected to do that work - maintain a comprehensive view
+and understanding of the artifacts produced within the project - on their
+own.
+
+This is where our package aims: at supporting the user in the task of
+recording, browsing and presenting the information about artifacts,
+the network of relationships between them and from this, the overall
+narrative about the understanding and applicability of the knowledge
+obtained in said project.
+
+## Abstract 2
+
+Unless and until knowledge is internalized, it has to be organized in an intuitive structure which tends to be a personal choice. Be it a report, a mind map, a compiled notebook or a series of plots, knowledge needs to be collected and presented repeatedly in order to continue research and share it with peers.
+
+
+Three phases:
+
+* store everything and make it simple to keep storing after shutting down and starting up R
+* enable lookup of artiacts; fast, to consult previous results and a slower one, to
+  remember the state of the work
+* enable read from the repository: make it simple to read objects and pass them as input
+  to ad-hoc code - AD HOC is IMPORTANT
+
+
+REPOSITORY CANNOT REQUIRE PRE-PLANNED INTERACTIONS, EVERYTHING NEEDS TO HAPPEN AT AN AD-HOC BASIS
+
+
+
+1. store and keep all artifacts produced in a session; after a restart re-attach to the store
+and make it simple to keep track, either by choosing the most-recent commit as the starting
+point, or by creating a brand-new commit out of the contents of the session and working from
+there
+
+2. make it easy to see all that has happened so far, re-build the context after a break,
+be it for the night between two days of work, for the weekend or a longer one when coming
+back to a project that was put on hold
+
+re-building the context
+
+but also make it simple to to rewind the history, or to hold a number of artifacts
+in a temporary notebook... or maybe develop stories? maybe position this whole thing
+as a STORY-TELLING tool?
+so a browser based on the trees of objects (history/origin) + set of stories where
+artifacts can be dumped to in order to maintain fast access to currently important
+objects
+
+3. ad-hoc reads and pipeing objects directly into ad-hoc code:
+tracker$objects$x %>% {lm(x ~ y, data = .)}
+
+
+
+## Supporting data exploration in R
+
+

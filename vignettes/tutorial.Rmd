@@ -1,0 +1,319 @@
+---
+title: "Tutorial: Artifact Repository"
+author: "Lukasz A. Bartnik"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tutorial: Artifact Repository}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+knitr::opts_chunk$set(collapse = TRUE, comment = NA, prompt = FALSE, echo = TRUE)
+```
+
+```{r color, echo = FALSE}
+ansi_handler <- function(x, options){
+  paste0(
+    "<pre class=\"r-output\"><code>",
+    fansi::sgr_to_html(htmltools::htmlEscape(x)),
+    "</code></pre>"
+  )
+}
+
+options(crayon.enabled = TRUE)
+knitr::knit_hooks$set(output = ansi_handler)
+knitr::knit_hooks$set(message = ansi_handler)
+
+
+
+# https://stackoverflow.com/questions/23114654/knitr-output-hook-with-an-output-lines-option-that-works-like-echo-26
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+   lines <- options$output.lines
+   if (is.null(lines)) {
+     return(hook_output(x, options))  # pass to default hook
+   }
+   x <- unlist(strsplit(x, "\n"))
+   more <- function (x) utilities::cpaste(grey = paste("# ... with", x, "more line(s)"))
+   if (length(lines)==1) {        # first n lines
+     if (length(x) > lines) {
+       # truncate the output, but add ...
+       x <- c(head(x, lines), more(length(x)-lines))
+     }
+   } else {
+     before <- abs(lines[1])
+     after  <- abs(lines[length(lines)])
+     x <- c(if (before>1) more(before) else NULL, 
+            x[lines], 
+            if (length(x)>after) more(after) else NULL
+           )
+   }
+   # paste these lines together
+   x <- paste(c(x, ""), collapse = "\n")
+   hook_output(x, options)
+ })
+```
+
+Plan (TODO):
+
+  * Browse (general)
+  * Find object/artifact
+  * Search for artifact (lm, plot, etc.), then browse session from that point
+  * Name an object (give a new name to an object)
+  * Put an artifact in a collection
+  * Export (explanation, history) to Rmd
+  * Explain an object
+
+# The Point
+
+Keep the research process intact. User stores their artifact however they
+choose. We collect artifacts and their lineage. The repository is handy
+when a need arises to verify the origin (lineage) of an artifact or
+browse the artifacts to restore a certain past state of research.
+
+Minimal running overhead, help when the current R tools are not sufficient,
+that is, working with the past states of the whole R session.
+
+
+# Problem description
+
+Data exploration projects can span multiple weeks or months and result
+in multiple artifacts (plots, models, data sets, code) being produced.
+These artifacts serve as evidence for a narrative about the data, as
+it is developed and later reported back to its consumer: fellow
+researchers, general public, business stakeholders. Thus, a need to
+organize, categorize and prioritize these artifacts: categories and
+priorities, however, are never ultimately settled, or known, as the
+narrative is in its nature open-ended. Therefore, the need to organize
+and reorganize artifacts as their number expands, or as the narrative is
+adjusted, become the most important of the three.
+
+In general, there is a multitude of ways to keep track of the evolution
+of data research. The following summary aims at underlining certain
+aspects of keeping record that will help us explain the goal of the
+approach proposed in this document.
+
+
+When considering means of organizing research artifacts in R, we can
+identify a number of general approaches to the problem. The most basic
+one is to store artifacts in the filesystem and use the directory
+structure and the file and directory names as the tools of keeping track
+of the research and its important findings. Data, plots, models and code
+are therefore kept as separate files and the burden of maintaining order
+and consistency among them (that is, that code can actually produce plots,
+models and data) is on the researcher. The commentary, which explains the
+meaning and relationships of artifacts, is kept along artifacts themselves
+or in a separate notebook or notebooks, electronic or physical.
+
+Another approach is to use literate programming: mix commentary, code and
+the results of code execution (plots, models, data) in a single document.
+One example of that approach is the `knit` package: a document contains
+free text and code excerpts; during "compilation" the code is run and the
+results are embedded in the document as they would appear in R console.
+Because the only input is the code (and the occasional source data) the
+document is always consistent and each artifact embedded in that final
+document can be recreated and its origin proven.
+
+Yet another approach is to create an R package or a Shiny application and
+allow the consumers of the narrative interact with it. This takes the
+longest time and the most significant effort, and thus is only the means
+of choice when the narrative is stabilized.
+
+TODO time and effort spectrum: which methods are more adequate in early
+research, which in later; the risks of loosing the consistency; the
+important dimensions: consistency, completeness, selectiveness; time
+and effort required to maintain the (living) record
+
+
+
+# Sample research project
+
+A sample artifact repository comes in the `repository` package. For
+further details see `?ui::use_sample_repository` and
+`?repository::sample_repository`.
+
+```{r comment='#>'}
+library(ui)
+use_sample_repository()
+```
+
+```{r include=FALSE}
+artifacts <- ui::artifacts
+```
+
+
+# Basic operations
+
+## Exploring the repository of artifacts
+
+We can look at R sessions recorded so far. Below is the list of all R
+sessions present in the repository. Each session is represented by an
+unique identifier, followed by the timestamp when it was started, and
+finally the number of artifacts recorded during that session.
+
+```{r}
+artifacts$session
+```
+
+
+We can also see names of objects recorded in the repository. Each name
+is followed by the number of artifacts assigned that name.
+
+```{r}
+artifacts$name
+```
+
+
+Similarly, we can look at the breakdown of artifacts by: `class`, `id`
+and `time`. The `time` breakdown does not show the number of artifacts
+but allows for a number of more elaborate searches:
+
+```{r}
+artifacts$time
+```
+
+## Exploring a recorded R session
+
+In order to see artifacts recorded during a given R session, we need to
+specify the session identifier as a part of the query line. When the
+result is printed on the console, it first shows the actual query used
+to retrieve artifacts, followed by the descriptions of the first three
+artifacts, which is finally followed by a simple footer with the number
+of artifacts not shown and other tags which can be used to further narrow
+the set of artifacts.
+
+```{r}
+artifacts$session$d75d3d72
+```
+
+
+We can look at the history of evaluated commands:
+
+```{r}
+artifacts$session$d75d3d72$history
+```
+
+
+We can also look at the tree view of the artifacts, where edges of the
+tree connect artifacts originating from one another.
+
+```{r}
+artifacts$session$d75d3d72$tree
+```
+
+
+Finally, let's limit the displayed artifacts to `data.frame`s and
+investigate their structure of origin.
+
+```{r}
+artifacts$session$d75d3d72$class$data.frame$tree
+```
+
+
+
+## Searching for a specific artifact
+
+We can limit the object selection by session identifier:
+
+```{r}
+artifacts$session$d75d3d72
+```
+
+Similarily, we can look at specific object creation time:
+
+```{r eval=FALSE}
+artifacts$time$since_yesterday
+```
+
+In both cases, we see a `filter()` expression added to the selection
+query and at most the first three objects matching this query.
+
+
+## Selecting an artifact
+
+We can retrieve a specific artifact from the repository. Let's search for
+artifacts whose name is `m`:
+
+```{r}
+artifacts$name$m
+```
+
+Since there is only one such artifact we can access it by adding `$value`
+to the last query.
+
+```{r, output.lines=8}
+artifacts$name$m$value
+```
+
+If the name is not unique we can use artifact id.
+
+```{r eval=FALSE}
+artifacts$id$`57fbe755`$value
+```
+
+Unlike other tag names, `name` and `id` do not need to be used explicitly.
+Thus, a shortcut version of these queries is:
+
+```{r eval=FALSE}
+artifacts$x$value
+artifacts$`57fbe755`$value
+```
+
+If there is more than one object matching the query we can keep
+narrowing the selection:
+
+```{r eval=FALSE}
+artifacts$name$y$class$lm$value
+```
+
+Similarly, we can construct a query where name or id is not specified
+at all.
+
+```{r eval=FALSE}
+artifacts$time$yesterday$class$lm
+```
+
+Finally, you can use the bracket operator to access an arbitrary
+object within a query result:
+
+```{r eval=FALSE}
+artifacts$class$data.frame[[1]]
+artifacts$class$data.frame[[2]]
+```
+
+## Retrieving a plot
+
+Plots are going to be a big part of every data analysis. There is no need
+to replot them, which is potentially a time-consuming operation. In order
+to retrieve all plots from the repository, run the following code.
+
+```{r}
+artifacts$class$plot
+```
+
+There is also a shortcut for that operation:
+
+```{r eval=FALSE}
+artifacts$plots
+```
+
+In order to see the actual plot use the `plot` accessor on one of the
+artifacts in the result set:
+
+```{r}
+artifacts$class$plot[[1]]$plot
+```
+
+You can do the same using the `id` of the plot:
+
+```{r eval=FALSE}
+artifacts$ba5bb305$plot
+```
+
+
+
+

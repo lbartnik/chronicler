@@ -1,0 +1,276 @@
+---
+title: "Upgrading the Research Toolkit"
+author: "Lukasz A. Bartnik"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Upgrading the Research Toolkit}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", prompt = FALSE, echo = TRUE)
+```
+
+
+
+# Introduction & Goals
+
+In data exploration, the goal is understanding which can be later turned
+into decisions. In the process of exploring data, numerous artifacts are
+created: plots, models, derived data sets, tables, printouts. They serve
+two general purposes: as intermediate steps towards a certain end goal
+and as a means of communication to external parties. The success of the
+exploration depends to a certain extent on the ability to filter, organize,
+preserve and search through those artifacts. The key aspect of artifacts
+in their lineage[^lineage], that is, the sequence of preceding artifacts
+(ancestors) which often forms a sequence of transforms leading from the
+source ("raw") data set to the given artifact. The ability to track the
+complete path of origin of an artifact and thus prove its correctness is
+is at the center of *reproducible research*.
+
+Artifacts need to be catalogued which imposes certain overhead and, if
+not done systematically, might leave gaps in the lineage and in some
+cases prevent reproducibility. In other cases it might slows down the
+research or add extra work of recreating the missing steps.
+
+
+**Short-term goal** is to improve the recall[^recall], that is, the
+ability to understand the significance of a research artifact. Each
+artifact produced in an R session is persisted in the filesystem along
+with pointers to all its immediate parent artifacts. The full tree of
+origin of each artifact can be produced upon request to support the
+recall.
+
+In *Plot 1*, artifacts are created in the *Exploration* loop and include
+data sets, code, plots, models, printouts, etc. Information about parents
+describes the lineage (also called provenance[^provenance]) of each
+artifact. The need for recall may arise in either step of the
+*Exploration* loop as well as in the *Communicate*. Whenever there is a
+gap in the documentation of the analysis, such artifact repository will
+be particularly handy.
+
+![*Plot 1*: Exploratory data science, original diagram in "R for Data
+Science" by H. Wickham.](graphics/dsloop.png)
+
+**Long-term goals** are to provide infrastructure and tools to automate
+collecting, describing and organizing artifacts. An important aspect of
+that work will be extending the current text-only user interface with a
+graphical artifact browser.
+
+[^recall]: Jim Hester: "The ability of yourself or other to understand
+what your code is doing."
+
+[^dsloop]: Hadley Wickham, ["R for Data Science"](http://r4ds.had.co.nz/explore-intro.html)
+
+[^lineage]: lineal descent from an ancestor; ancestry or pedigree.
+
+[^provenance]: origin, source; the history of ownership of a valued
+object or work of art or literature; [Merriam-Webster](https://www.merriam-webster.com/dictionary/provenance)
+
+
+
+# Current Implementation
+
+The current implementation spans four R packages:
+
+  * `repository` contains the bulk of "business logic"
+  * `ui` implements the user-facing facilities
+  * `storage` is a simple, filesystem storage layer for R objects
+  * `defer` provides API to identify objects referenced in R expressions 
+
+The goal of the current implementation of the *repository of artifacts*
+is to automate the process of collecting artifacts together wth their
+lineage. The life of a repository of artifacts spans multiple R sessions
+and the repository itself is stored in the filesystem. All artifacts can
+be read and retrieved from the repository, inspected, their origin
+(lineage) can be explained. The `ui` package implements a search interface
+(the `artifacts` object with Tab-completion-based query builder) and a
+number of pretty-printing methods.
+
+The usefulness of this toolset depends on how well one manages their
+artifacts and the narrative of their exploratory data analysis. If the
+documentation does not include substantial gaps and the research is
+reproducible then automated collection and tracking of artifacts might
+be useful only occasionally. However, if the gaps in artifacts' lineage
+are substantial and the documentation of the analysis is incomplete, an
+automated tracker might become handy.
+
+The main areas of current research are:
+
+  * ways of presenting artifacts that maximize the recall
+  * effective search interface
+
+
+## Example
+
+Sample sequence of calls and tree-like explanation of objects is
+presented below. See the `tutorial` vignette in the `ui` package for
+the full listing and further explanations.
+
+The sequence of R commands presented next loads, transforms and
+subsets a data set with time series meter readings. It creates
+a number of plots and finally a simple linear model to test the
+significance of the daily and weekly cycles in the data.
+
+```{r eval=FALSE}
+input <- system.file("extdata/block_62.csv", package = "repository") %>%
+  read_csv(na = "Null") %>%
+  rename(meter = LCLid, timestamp = tstp, usage = energy_kWh) %>%
+  filter(meter %in% c("MAC004929", "MAC000010", "MAC004391"), year(timestamp) == 2013)
+
+input %<>% mutate(timestamp = floor_date(timestamp, "hours")) %>%
+  group_by(meter, timestamp) %>%
+  summarise(usage = sum(usage))
+
+input %<>% filter(meter == "MAC004929")
+
+with(input, plot(timestamp, usage, type = "p", pch = "."))
+
+x <- input %>%
+  mutate(hour = hour(timestamp), dow = wday(timestamp, label = TRUE)) %>%
+  mutate_at(vars(hour, dow), funs(as.factor)) %>%
+  group_by(hour, dow) %>%
+  summarise(usage = mean(usage, na.rm = TRUE))
+
+with(x, plot(hour, usage))
+
+ggplot(x) + geom_point(aes(x = hour, y = usage)) + facet_wrap(~dow)
+
+ggplot(x) + geom_point(aes(x = hour, y = usage)) + facet_wrap(~dow)
+
+x <- input %>%
+  mutate(hour = hour(timestamp), dow = wday(timestamp)) %>%
+  mutate_at(vars(hour, dow), funs(as.factor))
+
+ggplot(x) + geom_boxplot(aes(x = hour, y = usage)) + facet_wrap(~dow)
+
+m <- lm(usage ~ hour:dow, x)
+```
+
+
+If that sequence of commands was tracked and stored in the repository of
+artifacts, a sample tree-like printout of artifacts from that R session
+could look as follows.
+
+```{r eval=FALSE}
+artifacts$session$`7a6f44b0`$tree
+#> input (89c78e89) data.frame[52560, 3]
+#> └── input (2b67f493) data.frame[26280, 3]
+#>     └── input (af206c42) data.frame[8760, 3]
+#>         ├── <plot> (a06e8fe4)
+#>         ├── x (f59403b5) data.frame[168, 3]
+#>         │   ├── <plot> (3539b7ba)
+#>         │   ├── x (64228d01) data.frame[168, 3]
+#>         │   └── <plot> (4cd2aeda)
+#>         └── x (b83ee352) data.frame[8760, 5]
+#>             ├── <plot> (9f51d793)
+#>             └── m (57fbe755) lm adjR2:0.33 AIC:7164 df:168
+```
+
+
+
+
+# Future
+
+Currently, `repository` and its collaborating packages implement only
+the simplest use case: tracking artifacts and retrieving their lineage.
+However, the kind of information collected by the tracker can be utilized
+in a number of other ways. Below are a few considered for future
+implementation.
+
+
+## Graphical browser
+
+Full inspection into history based on both expressions (commands) and
+objects (artifacts) created by those expressions. An example of such,
+[Shiny- and JavaScript-based browser](https://lbartnik.github.io/experiment)
+can be found in a [predecessor](http://github.com/lbartnik/experiment)
+of `repository`.
+
+
+## Presentation Aid
+
+A subset of artifacts can be chosen for presentation to stakeholders.
+Whenever a more specific question about an artifact, the narrative
+or rationale behind a given insight is raised, additional information
+can be presented. This can include: the full lineage, related plots
+and printouts, similar models, data transformations, etc.
+
+
+## Re-run code paths
+
+A lineage of an artifact effectively defines a program that starts
+with the source ("raw") data and produces the said artifact. It might
+depend on a number of additional artifacts or parameters, which from
+the perspective of R are the same. Those dependencies can be replaced
+and the full sequence can be then re-run to obtain a related result.
+
+In the example below, `n` and `h` are the parameters, `train` and `test`
+are the intermediate artifacts and `m` is the final artifact, a ARIMA
+model.
+
+```{r eval=FALSE}
+n <- 168
+h <- 10
+train <- head(data, n)
+test  <- head(tail(data, -n), h)
+m <- arima(train$x) # TODO turn into ARIMAX?
+summary(m)
+predict(m, test)
+```
+
+The `repository` would expose this whole sequece of commands as a
+function with a number of parameters, one for each intermediate
+artifact.
+
+```{r eval=FALSE}
+r <- repository_repeat(m)
+args(r)
+#> function(n, h, train, test, m)
+#> NULL
+```
+
+It is straightforward now to repeat the pipeline but with certain
+changes:
+
+```{r eval=FALSE}
+r(n = 336, h = 24)
+```
+
+
+## Propose narratives
+
+The assumption here is that it is not a single artifact that constitutes
+an *unit of knowledge*, that is, the most basic but **meaningful**
+information about the analysis. Rather, it is a set of artifacts on a
+path from the source ("raw") data all the way to a model (or a summary
+of some kind) that confirms or disproves a hypothesis about the data.
+The first approximation for this feature would be an automated view
+presenting all models (understanding) together with data transformations
+(ETL) and artifacts derived from the model (communication).
+
+```{r eval=FALSE}
+repository_results()
+#> Artifact: m, ARIMAX model
+#>
+#> Communication:
+#>   .... information about plots etc. ....
+#>
+#> Transformations:
+#>    ... a list of expressions that transformed the source data ...
+```
+
+
+## Export to Rmd
+
+Instead of manually crafting a Rmd document, choose artifacts and have
+them and their ancestors in the lineage tree exported automatically
+into one.
+
+
+## Full information about R session
+

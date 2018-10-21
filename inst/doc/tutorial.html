@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Lukasz A. Bartnik" />
+
+<meta name="date" content="2018-08-20" />
+
+<title>Tutorial: Artifact Repository</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Tutorial: Artifact Repository</h1>
+<h4 class="author"><em>Lukasz A. Bartnik</em></h4>
+<h4 class="date"><em>2018-08-20</em></h4>
+
+
+
+<p>Plan (TODO):</p>
+<ul>
+<li>Browse (general)</li>
+<li>Find object/artifact</li>
+<li>Search for artifact (lm, plot, etc.), then browse session from that point</li>
+<li>Name an object (give a new name to an object)</li>
+<li>Put an artifact in a collection</li>
+<li>Export (explanation, history) to Rmd</li>
+<li>Explain an object</li>
+</ul>
+<div id="the-point" class="section level1">
+<h1>The Point</h1>
+<p>Keep the research process intact. User stores their artifact however they choose. We collect artifacts and their lineage. The repository is handy when a need arises to verify the origin (lineage) of an artifact or browse the artifacts to restore a certain past state of research.</p>
+<p>Minimal running overhead, help when the current R tools are not sufficient, that is, working with the past states of the whole R session.</p>
+</div>
+<div id="problem-description" class="section level1">
+<h1>Problem description</h1>
+<p>Data exploration projects can span multiple weeks or months and result in multiple artifacts (plots, models, data sets, code) being produced. These artifacts serve as evidence for a narrative about the data, as it is developed and later reported back to its consumer: fellow researchers, general public, business stakeholders. Thus, a need to organize, categorize and prioritize these artifacts: categories and priorities, however, are never ultimately settled, or known, as the narrative is in its nature open-ended. Therefore, the need to organize and reorganize artifacts as their number expands, or as the narrative is adjusted, become the most important of the three.</p>
+<p>In general, there is a multitude of ways to keep track of the evolution of data research. The following summary aims at underlining certain aspects of keeping record that will help us explain the goal of the approach proposed in this document.</p>
+<p>When considering means of organizing research artifacts in R, we can identify a number of general approaches to the problem. The most basic one is to store artifacts in the filesystem and use the directory structure and the file and directory names as the tools of keeping track of the research and its important findings. Data, plots, models and code are therefore kept as separate files and the burden of maintaining order and consistency among them (that is, that code can actually produce plots, models and data) is on the researcher. The commentary, which explains the meaning and relationships of artifacts, is kept along artifacts themselves or in a separate notebook or notebooks, electronic or physical.</p>
+<p>Another approach is to use literate programming: mix commentary, code and the results of code execution (plots, models, data) in a single document. One example of that approach is the <code>knit</code> package: a document contains free text and code excerpts; during “compilation” the code is run and the results are embedded in the document as they would appear in R console. Because the only input is the code (and the occasional source data) the document is always consistent and each artifact embedded in that final document can be recreated and its origin proven.</p>
+<p>Yet another approach is to create an R package or a Shiny application and allow the consumers of the narrative interact with it. This takes the longest time and the most significant effort, and thus is only the means of choice when the narrative is stabilized.</p>
+<p>TODO time and effort spectrum: which methods are more adequate in early research, which in later; the risks of loosing the consistency; the important dimensions: consistency, completeness, selectiveness; time and effort required to maintain the (living) record</p>
+</div>
+<div id="sample-research-project" class="section level1">
+<h1>Sample research project</h1>
+<p>A sample artifact repository comes in the <code>repository</code> package. For further details see <code>?ui::use_sample_repository</code> and <code>?repository::sample_repository</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ui)
+<span class="kw">use_sample_repository</span>()</code></pre></div>
+<pre class="r-output"><code>#&gt; switching to the sample repository, in order to switch back to the current project reload the 'ui' package
+</code></pre>
+</div>
+<div id="basic-operations" class="section level1">
+<h1>Basic operations</h1>
+<div id="exploring-the-repository-of-artifacts" class="section level2">
+<h2>Exploring the repository of artifacts</h2>
+<p>We can look at R sessions recorded so far. Below is the list of all R sessions present in the repository. Each session is represented by an unique identifier, followed by the timestamp when it was started, and finally the number of artifacts recorded during that session.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>session</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Tag: </span><span> session </span><span style="color: #555555;">
+Values (#artifacts):
+</span><span>  56d67965: 2018-08-19 23:01 (6)     d75d3d72: 2018-08-19 20:47 (11)
+</span></code></pre>
+<p>We can also see names of objects recorded in the repository. Each name is followed by the number of artifacts assigned that name.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>name</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Tag: </span><span> names </span><span style="color: #555555;">
+Values (#artifacts):
+</span><span>  input (5)    m (1)        x (5)
+</span></code></pre>
+<p>Similarly, we can look at the breakdown of artifacts by: <code>class</code>, <code>id</code> and <code>time</code>. The <code>time</code> breakdown does not show the number of artifacts but allows for a number of more elaborate searches:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>time</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Tag: </span><span> time </span><span style="color: #555555;">
+Values (#artifacts):
+</span><span>  today              yesterday          thisweek
+  last_24hrs         last_3days         last_7days
+  last_day           last_week          since_yesterday
+  since_Monday       since_Tuesday      since_Wednesay
+  since_Thursday     since_Friday       since_Saturday
+  since_Sunday
+</span></code></pre>
+</div>
+<div id="exploring-a-recorded-r-session" class="section level2">
+<h2>Exploring a recorded R session</h2>
+<p>In order to see artifacts recorded during a given R session, we need to specify the session identifier as a part of the query line. When the result is printed on the console, it first shows the actual query used to retrieve artifacts, followed by the descriptions of the first three artifacts, which is finally followed by a simple footer with the number of artifacts not shown and other tags which can be used to further narrow the set of artifacts.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>session<span class="op">$</span>d75d3d72</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Query:
+</span><span>  &lt;repository:/tmp/RtmpFUDGLr/sample-repository&gt; %&gt;%
+    filter(isTRUE(artifact), &quot;d75d3d72&quot; %in% session)
+default</span><span style="color: #949494;">
+Matched </span><span>11</span><span style="color: #949494;"> artifact(s), of that </span><span>4</span><span style="color: #949494;"> plot(s)
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">57fbe755</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  m &lt;- stats::lm(usage ~ hour:dow, x)</span><span style="color: #555555;">
+Name:   </span><span> m</span><span style="color: #555555;">
+Class:  </span><span> lm</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:57:49</span><span style="color: #555555;">
+Summary:</span><span> lm adjR2:0.33 AIC:7164 df:168
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">d0fe8d94</span><span style="color: #555555;"> (plot)</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  ggplot2::ggplot(x) + ggplot2::geom_boxplot(ggplot2::aes(x = hour, y = usage)) + ggplot2::facet_wrap(~dow)</span><span style="color: #555555;">
+Class:  </span><span> rawplot plot</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:56:48</span><span style="color: #555555;">
+Summary:</span><span> 
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">b83ee352</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  x &lt;- input %&gt;%
+    dplyr::mutate(hour = lubridate::hour(timestamp), dow = lubridate::wday(timestamp)) %&gt;%
+    dplyr::mutate_at(dplyr::vars(hour, dow), dplyr::funs(as.factor))</span><span style="color: #555555;">
+Name:   </span><span> x</span><span style="color: #555555;">
+Class:  </span><span> grouped_df tbl_df tbl data.frame</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:55:44</span><span style="color: #555555;">
+Summary:</span><span> data.frame[8760, 5]
+
+</span><span style="color: #949494;">... with</span><span> 8 </span><span style="color: #949494;">more artifact(s)
+You can still specify following tags:</span><span> class id name session time
+</span></code></pre>
+<p>We can look at the history of evaluated commands:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>session<span class="op">$</span>d75d3d72<span class="op">$</span>history</code></pre></div>
+<pre class="r-output"><code><span style="color: #00BB00;">89c78e89</span><span style="color: #555555;">  no parents</span><span>
+  input &lt;- system.file(&quot;extdata/block_62.csv&quot;, package = &quot;repository&quot;) %&gt;%
+    readr::read_csv(na = &quot;Null&quot;) %&gt;%
+    dplyr::rename(meter = LCLid, timestamp = tstp, usage = energy_kWh) %&gt;%
+    dplyr::filter(meter %in% c(&quot;MAC004929&quot;, &quot;MAC000010&quot;, &quot;MAC004391&quot;), lubridate::year(timestamp) == 2013)
+
+</span><span style="color: #00BB00;">2b67f493</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">89c78e89</span><span>
+  input %&lt;&gt;% dplyr::mutate(timestamp = lubridate::floor_date(timestamp, &quot;hours&quot;)) %&gt;%
+    dplyr::group_by(meter, timestamp) %&gt;%
+    dplyr::summarise(usage = sum(usage))
+
+</span><span style="color: #00BB00;">af206c42</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">2b67f493</span><span>
+  input %&lt;&gt;% dplyr::filter(meter == &quot;MAC004929&quot;)
+
+</span><span style="color: #00BB00;">70f3c0a4</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">af206c42</span><span>
+  with(input, plot(timestamp, usage, type = &quot;p&quot;, pch = &quot;.&quot;))
+
+</span><span style="color: #00BB00;">f59403b5</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">af206c42</span><span>
+  x &lt;- input %&gt;%
+    dplyr::mutate(hour = lubridate::hour(timestamp), dow = lubridate::wday(timestamp, label = TRUE)) %&gt;%
+    dplyr::mutate_at(dplyr::vars(hour, dow), dplyr::funs(as.factor)) %&gt;%
+    dplyr::group_by(hour, dow) %&gt;%
+    dplyr::summarise(usage = mean(usage, na.rm = TRUE))
+
+</span><span style="color: #00BB00;">14e3598b</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">f59403b5</span><span>
+  with(x, plot(hour, usage))
+
+</span><span style="color: #00BB00;">64228d01</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">f59403b5</span><span>
+  ggplot2::ggplot(x) + ggplot2::geom_point(ggplot2::aes(x = hour, y = usage)) + ggplot2::facet_wrap(~dow)
+
+</span><span style="color: #00BB00;">fb79a008</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">f59403b5</span><span>
+  ggplot2::ggplot(x) + ggplot2::geom_point(ggplot2::aes(x = hour, y = usage)) + ggplot2::facet_wrap(~dow)
+
+</span><span style="color: #00BB00;">b83ee352</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">af206c42</span><span>
+  x &lt;- input %&gt;%
+    dplyr::mutate(hour = lubridate::hour(timestamp), dow = lubridate::wday(timestamp)) %&gt;%
+    dplyr::mutate_at(dplyr::vars(hour, dow), dplyr::funs(as.factor))
+
+</span><span style="color: #00BB00;">d0fe8d94</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">b83ee352</span><span>
+  ggplot2::ggplot(x) + ggplot2::geom_boxplot(ggplot2::aes(x = hour, y = usage)) + ggplot2::facet_wrap(~dow)
+
+</span><span style="color: #00BB00;">57fbe755</span><span style="color: #555555;">  parents:</span><span style="color: #BBBB00;">b83ee352</span><span>
+  m &lt;- stats::lm(usage ~ hour:dow, x)
+</span></code></pre>
+<p>We can also look at the tree view of the artifacts, where edges of the tree connect artifacts originating from one another.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>session<span class="op">$</span>d75d3d72<span class="op">$</span>tree</code></pre></div>
+<pre class="r-output"><code><span style="color: #00BB00;">input</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">89c78e89</span><span style="color: #555555;">) </span><span>data.frame[52560, 3]
+</span><span style="color: #555555;">└── </span><span style="color: #00BB00;">input</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">2b67f493</span><span style="color: #555555;">) </span><span>data.frame[26280, 3]
+</span><span style="color: #555555;">    └── </span><span style="color: #00BB00;">input</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">af206c42</span><span style="color: #555555;">) </span><span>data.frame[8760, 3]
+</span><span style="color: #555555;">        ├── </span><span style="color: #949494;">&lt;plot&gt; </span><span style="color: #555555;">(</span><span style="color: #BBBB00;">70f3c0a4</span><span style="color: #555555;">)
+        ├── </span><span style="color: #00BB00;">x</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">f59403b5</span><span style="color: #555555;">) </span><span>data.frame[168, 3]
+</span><span style="color: #555555;">        │   ├── </span><span style="color: #949494;">&lt;plot&gt; </span><span style="color: #555555;">(</span><span style="color: #BBBB00;">14e3598b</span><span style="color: #555555;">)
+        │   ├── </span><span style="color: #00BB00;">x</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">64228d01</span><span style="color: #555555;">) </span><span>data.frame[168, 3]
+</span><span style="color: #555555;">        │   └── </span><span style="color: #949494;">&lt;plot&gt; </span><span style="color: #555555;">(</span><span style="color: #BBBB00;">fb79a008</span><span style="color: #555555;">)
+        └── </span><span style="color: #00BB00;">x</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">b83ee352</span><span style="color: #555555;">) </span><span>data.frame[8760, 5]
+</span><span style="color: #555555;">            ├── </span><span style="color: #949494;">&lt;plot&gt; </span><span style="color: #555555;">(</span><span style="color: #BBBB00;">d0fe8d94</span><span style="color: #555555;">)
+            └── </span><span style="color: #00BB00;">m</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">57fbe755</span><span style="color: #555555;">) </span><span>lm adjR2:0.33 AIC:7164 df:168
+</span></code></pre>
+<p>Finally, let’s limit the displayed artifacts to <code>data.frame</code>s and investigate their structure of origin.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>session<span class="op">$</span>d75d3d72<span class="op">$</span>class<span class="op">$</span>data.frame<span class="op">$</span>tree</code></pre></div>
+<pre class="r-output"><code><span style="color: #00BB00;">input</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">89c78e89</span><span style="color: #555555;">) </span><span>data.frame[52560, 3]
+</span><span style="color: #555555;">└── </span><span style="color: #00BB00;">input</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">2b67f493</span><span style="color: #555555;">) </span><span>data.frame[26280, 3]
+</span><span style="color: #555555;">    └── </span><span style="color: #00BB00;">input</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">af206c42</span><span style="color: #555555;">) </span><span>data.frame[8760, 3]
+</span><span style="color: #555555;">        ├── </span><span style="color: #00BB00;">x</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">f59403b5</span><span style="color: #555555;">) </span><span>data.frame[168, 3]
+</span><span style="color: #555555;">        │   └── </span><span style="color: #00BB00;">x</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">64228d01</span><span style="color: #555555;">) </span><span>data.frame[168, 3]
+</span><span style="color: #555555;">        └── </span><span style="color: #00BB00;">x</span><span style="color: #555555;"> (</span><span style="color: #BBBB00;">b83ee352</span><span style="color: #555555;">) </span><span>data.frame[8760, 5]
+</span></code></pre>
+</div>
+<div id="searching-for-a-specific-artifact" class="section level2">
+<h2>Searching for a specific artifact</h2>
+<p>We can limit the object selection by session identifier:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>session<span class="op">$</span>d75d3d72</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Query:
+</span><span>  &lt;repository:/tmp/RtmpFUDGLr/sample-repository&gt; %&gt;%
+    filter(isTRUE(artifact), &quot;d75d3d72&quot; %in% session)
+default</span><span style="color: #949494;">
+Matched </span><span>11</span><span style="color: #949494;"> artifact(s), of that </span><span>4</span><span style="color: #949494;"> plot(s)
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">57fbe755</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  m &lt;- stats::lm(usage ~ hour:dow, x)</span><span style="color: #555555;">
+Name:   </span><span> m</span><span style="color: #555555;">
+Class:  </span><span> lm</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:57:49</span><span style="color: #555555;">
+Summary:</span><span> lm adjR2:0.33 AIC:7164 df:168
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">d0fe8d94</span><span style="color: #555555;"> (plot)</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  ggplot2::ggplot(x) + ggplot2::geom_boxplot(ggplot2::aes(x = hour, y = usage)) + ggplot2::facet_wrap(~dow)</span><span style="color: #555555;">
+Class:  </span><span> rawplot plot</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:56:48</span><span style="color: #555555;">
+Summary:</span><span> 
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">b83ee352</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  x &lt;- input %&gt;%
+    dplyr::mutate(hour = lubridate::hour(timestamp), dow = lubridate::wday(timestamp)) %&gt;%
+    dplyr::mutate_at(dplyr::vars(hour, dow), dplyr::funs(as.factor))</span><span style="color: #555555;">
+Name:   </span><span> x</span><span style="color: #555555;">
+Class:  </span><span> grouped_df tbl_df tbl data.frame</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:55:44</span><span style="color: #555555;">
+Summary:</span><span> data.frame[8760, 5]
+
+</span><span style="color: #949494;">... with</span><span> 8 </span><span style="color: #949494;">more artifact(s)
+You can still specify following tags:</span><span> class id name session time
+</span></code></pre>
+<p>Similarily, we can look at specific object creation time:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>time<span class="op">$</span>since_yesterday</code></pre></div>
+<p>In both cases, we see a <code>filter()</code> expression added to the selection query and at most the first three objects matching this query.</p>
+</div>
+<div id="selecting-an-artifact" class="section level2">
+<h2>Selecting an artifact</h2>
+<p>We can retrieve a specific artifact from the repository. Let’s search for artifacts whose name is <code>m</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>name<span class="op">$</span>m</code></pre></div>
+<pre class="r-output"><code><span style="color: #949494;">Query points to a single object
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">57fbe755</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  m &lt;- stats::lm(usage ~ hour:dow, x)</span><span style="color: #555555;">
+Name:   </span><span> m</span><span style="color: #555555;">
+Class:  </span><span> lm</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:57:49</span><span style="color: #555555;">
+Summary:</span><span> lm adjR2:0.33 AIC:7164 df:168
+</span></code></pre>
+<p>Since there is only one such artifact we can access it by adding <code>$value</code> to the last query.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>name<span class="op">$</span>m<span class="op">$</span>value</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Extracting element </span><span style="color: #BBBBBB;">57fbe755</span><span>
+</span></code></pre>
+<pre class="r-output"><code>
+Call:
+stats::lm(formula = usage ~ hour:dow, data = x)
+
+Coefficients:
+(Intercept)   hour0:dow1   hour1:dow1   hour2:dow1   hour3:dow1  
+   0.761096    -0.124288    -0.270596    -0.478827    -0.560673  
+ hour4:dow1   hour5:dow1   hour6:dow1   hour7:dow1   hour8:dow1  
+<span style="color: #949494;"># ... with 65 more line(s)</span><span>
+</span></code></pre>
+<p>If the name is not unique we can use artifact id.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>id<span class="op">$</span><span class="st">`</span><span class="dt">57fbe755</span><span class="st">`</span><span class="op">$</span>value</code></pre></div>
+<p>Unlike other tag names, <code>name</code> and <code>id</code> do not need to be used explicitly. Thus, a shortcut version of these queries is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>x<span class="op">$</span>value
+artifacts<span class="op">$</span><span class="st">`</span><span class="dt">57fbe755</span><span class="st">`</span><span class="op">$</span>value</code></pre></div>
+<p>If there is more than one object matching the query we can keep narrowing the selection:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>name<span class="op">$</span>y<span class="op">$</span>class<span class="op">$</span>lm<span class="op">$</span>value</code></pre></div>
+<p>Similarly, we can construct a query where name or id is not specified at all.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>time<span class="op">$</span>yesterday<span class="op">$</span>class<span class="op">$</span>lm</code></pre></div>
+<p>Finally, you can use the bracket operator to access an arbitrary object within a query result:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>class<span class="op">$</span>data.frame[[<span class="dv">1</span>]]
+artifacts<span class="op">$</span>class<span class="op">$</span>data.frame[[<span class="dv">2</span>]]</code></pre></div>
+</div>
+<div id="retrieving-a-plot" class="section level2">
+<h2>Retrieving a plot</h2>
+<p>Plots are going to be a big part of every data analysis. There is no need to replot them, which is potentially a time-consuming operation. In order to retrieve all plots from the repository, run the following code.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>class<span class="op">$</span>plot</code></pre></div>
+<pre class="r-output"><code><span style="color: #555555;">Query:
+</span><span>  &lt;repository:/tmp/RtmpFUDGLr/sample-repository&gt; %&gt;%
+    filter(isTRUE(artifact), &quot;plot&quot; %in% class)
+default</span><span style="color: #949494;">
+Matched </span><span>6</span><span style="color: #949494;"> artifact(s), of that </span><span>6</span><span style="color: #949494;"> plot(s)
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">539d7b91</span><span style="color: #555555;"> (plot)</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  ggplot(x) + geom_boxplot(aes(x = hour, y = usage)) + facet_wrap(~dow)</span><span style="color: #555555;">
+Class:  </span><span> rawplot plot</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 23:07:59</span><span style="color: #555555;">
+Summary:</span><span> 
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">ba5bb305</span><span style="color: #555555;"> (plot)</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  ggplot(x) + geom_boxplot(aes(x = hour, y = usage)) + facet_wrap(~dow)</span><span style="color: #555555;">
+Class:  </span><span> rawplot plot</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 23:03:54</span><span style="color: #555555;">
+Summary:</span><span> 
+</span><span style="color: #00BB00;">
+*
+</span><span style="color: #555555;">Artifact: </span><span style="color: #00BB00;">d0fe8d94</span><span style="color: #555555;"> (plot)</span><span>
+</span><span style="color: #555555;">Expression:
+</span><span>  ggplot2::ggplot(x) + ggplot2::geom_boxplot(ggplot2::aes(x = hour, y = usage)) + ggplot2::facet_wrap(~dow)</span><span style="color: #555555;">
+Class:  </span><span> rawplot plot</span><span style="color: #555555;">
+Created:</span><span> 2018-08-19 20:56:48</span><span style="color: #555555;">
+Summary:</span><span> 
+
+</span><span style="color: #949494;">... with</span><span> 3 </span><span style="color: #949494;">more artifact(s)
+You can still specify following tags:</span><span> class id name session time
+</span></code></pre>
+<p>There is also a shortcut for that operation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>plots</code></pre></div>
+<p>In order to see the actual plot use the <code>plot</code> accessor on one of the artifacts in the result set:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>class<span class="op">$</span>plot[[<span class="dv">1</span>]]<span class="op">$</span>plot</code></pre></div>
+<img src="data:image/png;base64,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" /><!-- -->
+<pre class="r-output"><code><span style="color: #949494;">&lt;rawplot&gt;
+</span><span style="color: #555555;"># use the plot() method to re-plot
+</span><span>
+</span></code></pre>
+<p>You can do the same using the <code>id</code> of the plot:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">artifacts<span class="op">$</span>ba5bb305<span class="op">$</span>plot</code></pre></div>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
