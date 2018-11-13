@@ -3,20 +3,40 @@
 \docType{data}
 \name{attach_wizard}
 \alias{attach_wizard}
+\alias{chronicler-ui}
 \alias{artifacts}
-\title{Search for artifacts.}
+\alias{history}
+\title{Chronicler user interface objects.}
 \format{An object of class \code{NULL} of length 0.}
 \usage{
 attach_wizard()
 
 artifacts
+
+history
 }
 \description{
 \code{chronicler_attach} extends the default, on-load logic
 with interactions with the user whenever a decision cannot be made
 automatically and thus results in an error on package load.
+}
+\examples{
+\dontrun{
+# show summary of all artifacts in repository
+artifacts
 
-An entry point for artifact search. Exposes an interactive query
-mechanism with tab-completion via the \code{$} (dollar) operator.
+# show all R sessions
+artifacts$session
+
+# show artifacts from a given session
+artifacts$session$afc61b89
+
+# show all artifacts with a given name
+artifacts$name$input
+artifacts$input
+
+# retrieve a given artifact
+artifacts$id$c643b1a$value
+}
 }
 \keyword{datasets}

@@ -3,6 +3,7 @@
 export(artifacts)
 export(attach_wizard)
 export(browser_addin_binding)
+export(history)
 import(browser)
 import(repository)
 import(search)
