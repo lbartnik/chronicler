@@ -8,19 +8,27 @@ Description: Meta-package that installs all dependencies needed to enable
 License: GPLv3 IT + file LICENSE
 URL: https://github.com/lbartnik/chronicler
 BugReports: https://github.com/lbartnik/chronicler/issues
+Depends:
+  ui
 Imports:
   browser,
   defer,
   glue,
   repository,
+  rlang,
   search,
   storage,
-  ui,
   utilities
 Suggests:
+  rstudioapi,
   testthat
 Collate:
-  'hello.R'
+  'addins.R'
+  'chronicler.R'
+  'simulation-ext.R'
+  'terms.R'
+  'tracker.R'
+  'ui.R'
 Remotes:
   github::lbartnik/browser,
   github::lbartnik/defer,
@@ -30,5 +38,6 @@ Remotes:
   github::lbartnik/ui,
   github::lbartnik/utilities
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+Encoding: UTF-8
+RoxygenNote: 6.1.0
 Roxygen: list(markdown = TRUE)

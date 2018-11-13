@@ -2,3 +2,16 @@
    * chronicler-base: all deps
    * chronicler: github packages
 
+prepare for presentation
+  * make attaching to repository on load user-friendly
+  * show how to identify files
+  * deploy a sample repository into Docker image
+  * make it possible to see the artifact after successful identification:
+    either in the browser or in the console (?)
+
+use scenarios:
+  * identify artifact by file
+  * full lineage of objects in a paper
+
+add $ handling to defer
+rename commits to steps? snapshots?

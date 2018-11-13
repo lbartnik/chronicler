@@ -1,0 +1,9 @@
+Name: Interactive Object Browser
+Description: Browse artifacts from repository.
+Binding: browser_addin_binding
+Interactive: true
+
+Name: Identify File
+Description: Pick a file and find matching artifact.
+Binding: search_addin_binding
+Interactive: true
