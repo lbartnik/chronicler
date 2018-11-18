@@ -10,7 +10,7 @@
 \usage{
 chronicler_state
 
-prepare_session(state)
+prepare_session(state, path)
 
 init_ui(state)
 }

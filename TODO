@@ -2,6 +2,13 @@
    * chronicler-base: all deps
    * chronicler: github packages
 
+2. Use in docs:
+   https://en.wikipedia.org/wiki/Feature_engineering
+   https://en.wikipedia.org/wiki/Exploratory_data_analysis
+   https://cran.r-project.org/web/packages/DataExplorer/vignettes/dataexplorer-intro.html
+   https://github.com/alexiscarter/BIOME/blob/master/Day3_AM/Lecture7_Reproducibility.pdf
+
+
 prepare for presentation
   * make attaching to repository on load user-friendly
   * show how to identify files

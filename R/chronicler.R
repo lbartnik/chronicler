@@ -28,7 +28,7 @@ NULL
     if (!is_auto_attach()) {
       inform("chronicler.attach is not TRUE, not attaching to repository")
     } else {
-      prepare_session(chronicler_state)
+      prepare_session(chronicler_state, file.path(getwd(), 'repository'))
     }
   }
 }

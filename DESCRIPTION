@@ -25,10 +25,12 @@ Suggests:
 Collate:
   'addins.R'
   'chronicler.R'
+  'dialog.R'
   'simulation-ext.R'
   'terms.R'
   'tracker.R'
   'ui.R'
+  'vignettes.R'
 Remotes:
   github::lbartnik/browser,
   github::lbartnik/defer,

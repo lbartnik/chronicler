@@ -1,10 +1,10 @@
 ---
-title: "Extending the Research Tooling"
+title: "On Extending the Research Process"
 author: "Lukasz A. Bartnik"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Extending the Research Tooling}
+  %\VignetteIndexEntry{On Extending the Research Process}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,11 +16,55 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", prompt = FALSE, echo = TR
 ```
 
 
-## Extending the Research Process
 
-Repository that records everything and exposes the history of created
-artifacts through a query mechanism.
+# Problem description
 
+Data exploration projects can span multiple weeks or months and result
+in multiple artifacts (plots, models, data sets, code) being produced.
+These artifacts serve as evidence for a narrative about the data, as
+it is developed and later reported back to its consumer: fellow
+researchers, general public, business stakeholders. Thus, a need to
+organize, categorize and prioritize these artifacts: categories and
+priorities, however, are never ultimately settled, or known, as the
+narrative is in its nature open-ended. Therefore, the need to organize
+and reorganize artifacts as their number expands, or as the narrative is
+adjusted, become the most important of the three.
+
+In general, there is a multitude of ways to keep track of the evolution
+of data research. The following summary aims at underlining certain
+aspects of keeping record that will help us explain the goal of the
+approach proposed in this document.
+
+
+When considering means of organizing research artifacts in R, we can
+identify a number of general approaches to the problem. The most basic
+one is to store artifacts in the filesystem and use the directory
+structure and the file and directory names as the tools of keeping track
+of the research and its important findings. Data, plots, models and code
+are therefore kept as separate files and the burden of maintaining order
+and consistency among them (that is, that code can actually produce plots,
+models and data) is on the researcher. The commentary, which explains the
+meaning and relationships of artifacts, is kept along artifacts themselves
+or in a separate notebook or notebooks, electronic or physical.
+
+Another approach is to use literate programming: mix commentary, code and
+the results of code execution (plots, models, data) in a single document.
+One example of that approach is the `knit` package: a document contains
+free text and code excerpts; during "compilation" the code is run and the
+results are embedded in the document as they would appear in R console.
+Because the only input is the code (and the occasional source data) the
+document is always consistent and each artifact embedded in that final
+document can be recreated and its origin proven.
+
+Yet another approach is to create an R package or a Shiny application and
+allow the consumers of the narrative interact with it. This takes the
+longest time and the most significant effort, and thus is only the means
+of choice when the narrative is stabilized.
+
+TODO time and effort spectrum: which methods are more adequate in early
+research, which in later; the risks of loosing the consistency; the
+important dimensions: consistency, completeness, selectiveness; time
+and effort required to maintain the (living) record
 
 
 ## Abstract

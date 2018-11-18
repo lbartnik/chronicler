@@ -11,142 +11,222 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(knitr)
+library(utilities)
 
 knitr::opts_chunk$set(collapse = TRUE, comment = NA, prompt = FALSE, echo = TRUE)
 ```
 
-```{r color, echo = FALSE}
-ansi_handler <- function(x, options){
-  paste0(
-    "<pre class=\"r-output\"><code>",
-    fansi::sgr_to_html(htmltools::htmlEscape(x)),
-    "</code></pre>"
-  )
-}
-
+```{r hooks, echo = FALSE}
 options(crayon.enabled = TRUE)
-knitr::knit_hooks$set(output = ansi_handler)
-knitr::knit_hooks$set(message = ansi_handler)
+knitr::knit_hooks$set(output = utilities::ansi_handler)
+knitr::knit_hooks$set(message = utilities::ansi_handler)
 
+# try old.hooks <- set_knit_hooks(knitr::knit_hooks)
 
-
-# https://stackoverflow.com/questions/23114654/knitr-output-hook-with-an-output-lines-option-that-works-like-echo-26
-hook_output <- knit_hooks$get("output")
-knit_hooks$set(output = function(x, options) {
-   lines <- options$output.lines
-   if (is.null(lines)) {
-     return(hook_output(x, options))  # pass to default hook
-   }
-   x <- unlist(strsplit(x, "\n"))
-   more <- function (x) utilities::cpaste(grey = paste("# ... with", x, "more line(s)"))
-   if (length(lines)==1) {        # first n lines
-     if (length(x) > lines) {
-       # truncate the output, but add ...
-       x <- c(head(x, lines), more(length(x)-lines))
-     }
-   } else {
-     before <- abs(lines[1])
-     after  <- abs(lines[length(lines)])
-     x <- c(if (before>1) more(before) else NULL, 
-            x[lines], 
-            if (length(x)>after) more(after) else NULL
-           )
-   }
-   # paste these lines together
-   x <- paste(c(x, ""), collapse = "\n")
-   hook_output(x, options)
- })
+original_output_hook <- knit_hooks$get("output")
+knit_hooks$set(output = utilities::create_trimming_hook(original_output_hook))
 ```
 
-Plan (TODO):
+```{r load-chronicler,message=FALSE,include=FALSE}
+options(chronicler.attach = FALSE)
+library(chronicler)
+```
 
-  * Browse (general)
-  * Find object/artifact
-  * Search for artifact (lm, plot, etc.), then browse session from that point
-  * Name an object (give a new name to an object)
-  * Put an artifact in a collection
-  * Export (explanation, history) to Rmd
-  * Explain an object
 
-# The Point
+# Introduction
 
-Keep the research process intact. User stores their artifact however they
-choose. We collect artifacts and their lineage. The repository is handy
-when a need arises to verify the origin (lineage) of an artifact or
+`chronicler` collects all research artifacts (plots, data, models, code)
+and their lineage in a file-system-based repository. Such data becomes
+handy when you need to to verify the origin (lineage) of an artifact or
 browse the artifacts to restore a certain past state of research.
 
-Minimal running overhead, help when the current R tools are not sufficient,
-that is, working with the past states of the whole R session.
+`chronicler` has been designed specifically to introduce only minimal
+overhead and to provide additional help only when the R tools of choice
+are not sufficient. `chronicler` does not require any changes to the
+research process, personal habits of preferences. Users can produce and
+organize the results of their work however they choose, and interact
+with `chronicler` only when they need to retrieve past data.
+
+This document presents the few foundational concepts of `chronicler`
+and provides a few code examples to illustrate their relevance in data
+analysis.
 
 
-# Problem description
+## Docker
 
-Data exploration projects can span multiple weeks or months and result
-in multiple artifacts (plots, models, data sets, code) being produced.
-These artifacts serve as evidence for a narrative about the data, as
-it is developed and later reported back to its consumer: fellow
-researchers, general public, business stakeholders. Thus, a need to
-organize, categorize and prioritize these artifacts: categories and
-priorities, however, are never ultimately settled, or known, as the
-narrative is in its nature open-ended. Therefore, the need to organize
-and reorganize artifacts as their number expands, or as the narrative is
-adjusted, become the most important of the three.
+You can experiment with `chronicler`, test every idea described in this
+vignette and run every code snippet included below. In order to make it
+more easier, I created a Docker image which comes with necessary R
+packages, their dependencies, sample data and RStudio - all preinstalled,
+configured and ready to go.
 
-In general, there is a multitude of ways to keep track of the evolution
-of data research. The following summary aims at underlining certain
-aspects of keeping record that will help us explain the goal of the
-approach proposed in this document.
-
-
-When considering means of organizing research artifacts in R, we can
-identify a number of general approaches to the problem. The most basic
-one is to store artifacts in the filesystem and use the directory
-structure and the file and directory names as the tools of keeping track
-of the research and its important findings. Data, plots, models and code
-are therefore kept as separate files and the burden of maintaining order
-and consistency among them (that is, that code can actually produce plots,
-models and data) is on the researcher. The commentary, which explains the
-meaning and relationships of artifacts, is kept along artifacts themselves
-or in a separate notebook or notebooks, electronic or physical.
-
-Another approach is to use literate programming: mix commentary, code and
-the results of code execution (plots, models, data) in a single document.
-One example of that approach is the `knit` package: a document contains
-free text and code excerpts; during "compilation" the code is run and the
-results are embedded in the document as they would appear in R console.
-Because the only input is the code (and the occasional source data) the
-document is always consistent and each artifact embedded in that final
-document can be recreated and its origin proven.
-
-Yet another approach is to create an R package or a Shiny application and
-allow the consumers of the narrative interact with it. This takes the
-longest time and the most significant effort, and thus is only the means
-of choice when the narrative is stabilized.
-
-TODO time and effort spectrum: which methods are more adequate in early
-research, which in later; the risks of loosing the consistency; the
-important dimensions: consistency, completeness, selectiveness; time
-and effort required to maintain the (living) record
+To run this docker image here is where you get it from; here is how you start it
 
 
 
-# Sample research project
+# Problem
 
-A sample artifact repository comes in the `repository` package. For
-further details see `?ui::use_sample_repository` and
-`?repository::sample_repository`.
+Data exploration and modelling are messy. We start with a bunch of data,
+we make a lot of attempts, poke around, do our best to learn anything we
+can about that data set, and finally produce a predictive model, a
+recommendation for decision makers or simply a description of what is in
+the data.
 
-```{r comment='#>'}
-library(ui)
-use_sample_repository()
+So, what is the "problem"? Why is data exploration "messy", again? It
+boils down to one thing: complexity of the learning process. Before the
+final outcome is known, a typical researcher will build many intermatied
+models, a variety of transformed data sets, a multitude of plots. Some
+of them will be useful as intermediate steps towards something more
+refined, but many are useful only because they confirm that certain
+ideas are wrong.
+
+```{r all-together, echo=FALSE, fig.cap="*Plot 1*: Data modelling is messy: which model is the right one?", out.width = '100%'}
+knitr::include_graphics("graphics/all-together.png")
 ```
 
-```{r include=FALSE}
-artifacts <- ui::artifacts
+OK, but why is that a problem at all? It might be, and usually is,
+because data exploration is also iterative, which means frequent
+back-and-forth between variuos ideas. And that means you have to have
+something to return to: code, data, models, plots. But since you never
+know what might turn out handy, it's better to store everything, or at
+least as much as possible. But that means a lot of "everything", and
+then, where to store it? Not to mention making sure that this piece of
+code produces that particular object or plot that I need right now. Data
+exploration is as much about harnessing chaos as it is about actual data
+exploration. Hence, the messiness.
+
+TODO a picture of stacks of plots, code snippets, table printouts;
+ like a stack of photos
+
+There are of course multiple tools and techniques aimed at exactly this
+problem. RMarkdown, R and Jupyter notebooks, code versioning (think: git),
+to name a few tools, or literate programming and packaging code with unit
+tests to name some techniques. Here I want to propose something slightly
+different, which combined with existing tools can help with the challenge
+of organizing artifacts and findings of a data exploration process.
+
+
+The approach described here, and provided as the `chronicler` R package,
+is built around two main components: an R object tracker and a search
+engine. However, because we track not only R objects created and
+transformed in R session, but also code, plots and console printouts[^printouts],
+from now on we will be talking about __artifacts__ and not __objects__.
+
+[^printouts]: Console printouts are not implemented yet.
+
+
+## Tracker
+
+Let's start with the artifact tracker. Imagine that the commands below
+were run in a new (that is, empty) R session. This in an example from
+the `repository` package, see `?repository::iris_model` for details.
+
+```{r cache=FALSE,include=FALSE}
+path <- system.file('scripts/iris-model.R', package = 'repository')
+read_chunk(path)
+```
+```{r iris-model,eval=FALSE}
 ```
 
 
-# Basic operations
+Let's take a look at the artifacts created in each step: which of them
+are kept in the session and which stored in the repository. The plot
+below depicts artifacts <span style="color: #4fb9ec;">created in R session</span>
+and <span style="color: #7bce24;">stored in the repository</span>
+as <span style="color: #868686;">R commands</span> are executed.
+
+![*Plot 2*: Objects in R session and artifacts in repository.](graphics/commits.png)
+
+It is important to notice the four-digit (hexadecimal) identifier
+assigned to each artifact. Even though artifacts which share name are
+replaced in R session (namely, in the global environment), they remain
+intact when written into the repository. Furthermore, each command
+tracks its parent which means the complete lineage[^lineage] of each
+artifacts can be retrieved on request.
+
+The tracker itself is a simple callback function registered in R session
+with the standard R API, the `addTaskCallback()` function from the `base`
+package. Thus, which is quite crucial, tracker can be loaded and executed
+in R entirely out-of-the-box, without any additional configuration or
+changes to the environment.
+
+
+[^lineage]:
+
+
+## Search
+
+Tracking artifacts would be quite useless without a proper method to
+retrieve those relevant to the ongoing research. One of the core
+assumptions in the design of `chronicler` is that it should fit into any
+given way of doing research in R. This assumption led us to choose a
+file-based search mechanism.
+
+A user points to a file - a plot, a data set, a serialized model - and
+`chronicler` finds all artifacts matching the contents of that file.
+These artifacts can be then displayed in their specific context, which
+includes the R command which created them, their lineage (parent
+artifacts).
+
+```{r cache=FALSE,include=FALSE,message=FALSE}
+chronicler:::attach_to_repository(repository::iris_model())
+```
+First, a trivial object search. The `iris` data set is assigned to
+variable `x` in the first line of the example.
+
+```{r search-iris}
+identify_artifact(iris)
+```
+
+Artifact `2b0c3bb1` is indeed a copy of the `iris` data set and a quick
+look at the expression confirms that it is the result of the first command
+in our example.
+
+Now we will search for a plot stored in a file. `repository` contains
+such plot, one of the artifacts in the `iris_model()` example. Let's
+find the path and see the plot itself.
+
+```{r iris-plot-path}
+path <- system.file('artifacts/iris-predictions.png', package = 'repository')
+```
+```{r iris-show-plot,results='asis',echo=FALSE}
+cat(sprintf("![Plot stored under repository/artifacts/iris-predictions.png](%s)", path))
+```
+
+Searching by file contents reveals another artifacts, this time the
+first of the two plots from our example. Let's also see what can we
+learn about the context in which that plot was run: `explain()` prints
+a few entries from the history leading up to the artifact in question.
+
+```{r iris-search}
+identify_artifact(path)
+explain(identify_artifact(path))
+```
+
+
+So, with `chronicler` tracking your work, you will always be able to
+find the exact sequence of commands that led to a plot or a model
+sitting somewhere in your project's folder.
+
+
+
+# Browsing the Repository
+
+more elaborate example using `repository::london_meters`
+
+```{r attach,include=FALSE}
+chronicler:::attach_to_repository(repository::london_meters())
+# TODO why does it have to be forwarded like that?
+artifacts <- chronicler::artifacts
+```
+
+```{r docker-attach,eval=FALSE}
+library(chronicler)
+attach_with_wizard(repository::london_meters())
+```
+
+Code for this example attached in Appendix.
+
 
 ## Exploring the repository of artifacts
 
@@ -155,15 +235,15 @@ sessions present in the repository. Each session is represented by an
 unique identifier, followed by the timestamp when it was started, and
 finally the number of artifacts recorded during that session.
 
-```{r}
-artifacts$session
+```{r session}
+class(artifacts$session)
 ```
 
 
 We can also see names of objects recorded in the repository. Each name
 is followed by the number of artifacts assigned that name.
 
-```{r}
+```{r name}
 artifacts$name
 ```
 
@@ -172,7 +252,7 @@ Similarly, we can look at the breakdown of artifacts by: `class`, `id`
 and `time`. The `time` breakdown does not show the number of artifacts
 but allows for a number of more elaborate searches:
 
-```{r}
+```{r time}
 artifacts$time
 ```
 

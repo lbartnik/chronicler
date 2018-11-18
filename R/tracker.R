@@ -10,17 +10,20 @@ chronicler_state <- new_state()
 #' @param state the global session state object.
 #'
 #' @rdname session-state
-prepare_session <- function (state) {
+prepare_session <- function (state, path) {
   inform("chronicler: attempting to attach to an existing repository")
 
   tryCatch(
     {
-      attach_to_repository(state, file.path(getwd(), 'repository'), interactions())
+      state_reset(state)
+      open_repository(state, path)
+      pick_branch(state, .GlobalEnv)
+      start_tracking(state, 'chronicler-task-callback')
       init_ui(state)
     },
     error = function(e) {
       cinform("Failed to open repository on package load.",
-              e$message, "\nRun chronicler::attach_wizard() for interactive wizard.",
+              e$message, "\nRun chronicler::attach_with_wizard() for interactive wizard.",
               sep = '\n', default = 'grey')
       state_reset(state)
     }
@@ -36,40 +39,44 @@ close_session <- function (state) {
 #' with interactions with the user whenever a decision cannot be made
 #' automatically and thus results in an error on package load.
 #'
+#' @param x a [repository::repository] object or a path to look for
+#'        repository under; if a path, create if does not exist.
+#'
 #' @export
 #' @rdname chronicler-ui
-attach_wizard <- function () {
+attach_with_wizard <- function (x = file.path(getwd(), 'repository')) {
   if (!is_rstudio()) {
     abort("currently wizard can be run only in RStudio")
   }
 
   # TODO check if already attached
 
-  showMultipleChoice <- function (title, message, choices) {
-    ans <- rstudioapi::showPrompt(title, paste0(message, '\n', paste(choices, collapse = '\n'), '\n'))
-    if (!length(ans)) abort("No answer from user.")
+  state_reset(chronicler_state)
 
-    i <- match(ans, choices)
-    if (is.na(i)) i <- suppressWarnings(as.integer(ans))
-    if (is.na(i)) abort("Unsupported choice.")
-    i
+  # if a repository, simply open it; if a path, try creating too
+  if (is_repository(x)) {
+    open_repository(chronicler_state, x)
+  } else {
+    if (!is_character(x)) abort("`x` is not a path nor a repository object")
+
+    open_repository(chronicler_state, x, interactions(
+      create_first_commit = function () {
+        rstudioapi::showQuestion(
+          "Create first commit?",
+          glue("Repository found under '{x}' is empty but current session \\
+                contains data. Do you want to add objects from the current session \\
+                as the first commit in the repositry?")
+        )
+      }
+    ))
   }
 
-
-  repo_path <- file.path(getwd(), 'repository')
-  attach_to_repository(chronicler_state, repo_path, interactions(
-    create_first_commit = function () {
-      rstudioapi::showQuestion(
-        "Create first commit?",
-        glue("Repository found under '{repo_path}' is empty but current session \\
-              contains data. Do you want to add objects from the current session \\
-              as the first commit in the repositry?")
-      )
-    },
+  # pick commit in the repository and load it into global environment
+  pick_branch(chronicler_state, .GlobalEnv, interactions(
     clean_env = function() {
       rstudioapi::showQuestion(
         "Clean session (global) environment?",
-         glue("Current session does not match any commit in repository '{repo_path}'. \\
+         glue("Current session does not match any commit in repository '{path}'. \\
                Choose 'OK' to remove objects from the current session.")
       )
     },
@@ -84,13 +91,10 @@ attach_wizard <- function () {
                          choices)
     }
   ))
+
+  # turn the tracker on
+  start_tracking(chronicler_state, 'chronicler-task-callback')
+
+  # re-initialize ui
+  init_ui(chronicler_state)
 }
-
-attach_to_repository <- function (state, path, int) {
-  state_reset(state)
-  open_repository(state, path, int)
-  pick_branch(state, .GlobalEnv, int)
-  start_tracking(state, 'chronicler-task-callback')
-}
-
-
