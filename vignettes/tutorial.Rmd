@@ -80,7 +80,7 @@ of them will be useful as intermediate steps towards something more
 refined, but many are useful only because they confirm that certain
 ideas are wrong.
 
-```{r all-together, echo=FALSE, fig.cap="*Plot 1*: Data modelling is messy: which model is the right one?", out.width = '100%'}
+```{r all-together, echo=FALSE, fig.cap="*Figure 1*: Data modelling is messy: which model is the right one?", out.width = '100%'}
 knitr::include_graphics("graphics/all-together.png")
 ```
 
@@ -135,7 +135,7 @@ below depicts artifacts <span style="color: #4fb9ec;">created in R session</span
 and <span style="color: #7bce24;">stored in the repository</span>
 as <span style="color: #868686;">R commands</span> are executed.
 
-![*Plot 2*: Objects in R session and artifacts in repository.](graphics/commits.png)
+![*Figure 2*: Objects in R session and artifacts in repository.](graphics/commits.png)
 
 It is important to notice the four-digit (hexadecimal) identifier
 assigned to each artifact. Even though artifacts which share name are
@@ -151,7 +151,7 @@ in R entirely out-of-the-box, without any additional configuration or
 changes to the environment.
 
 
-[^lineage]:
+[^lineage]: lineal descent from an ancestor; ancestry or pedigree. Oxford Dictionary of English.
 
 
 ## Search
@@ -190,7 +190,7 @@ find the path and see the plot itself.
 path <- system.file('artifacts/iris-predictions.png', package = 'repository')
 ```
 ```{r iris-show-plot,results='asis',echo=FALSE}
-cat(sprintf("![Plot stored under repository/artifacts/iris-predictions.png](%s)", path))
+cat(sprintf("![Figure 3: Plot stored under repository/artifacts/iris-predictions.png](%s)", path))
 ```
 
 Searching by file contents reveals another artifacts, this time the
