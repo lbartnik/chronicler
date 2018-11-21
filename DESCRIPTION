@@ -5,7 +5,7 @@ Version: 0.1.0
 Authors@R: person("Lukasz", "Bartnik", email = "l.bartnik@gmail.com", role = c("aut", "cre"))
 Description: Meta-package that installs all dependencies needed to enable
   history of binary R objects: data sets, models, plots, code.
-License: GPLv3 IT + file LICENSE
+License: GPL-3 + file LICENSE
 URL: https://github.com/lbartnik/chronicler
 BugReports: https://github.com/lbartnik/chronicler/issues
 Depends:
@@ -20,6 +20,7 @@ Imports:
   storage,
   utilities
 Suggests:
+  knitr,
   rstudioapi,
   testthat
 Collate:

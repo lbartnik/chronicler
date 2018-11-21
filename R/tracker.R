@@ -8,6 +8,7 @@ chronicler_state <- new_state()
 #' informs the user how to start the interactive wizard.
 #'
 #' @param state the global session state object.
+#' @param path path to [repository::repository].
 #'
 #' @rdname session-state
 prepare_session <- function (state, path) {
@@ -35,7 +36,9 @@ close_session <- function (state) {
 }
 
 
-#' @description `chronicler_attach` extends the default, on-load logic
+#' Attach to repository.
+#'
+#' @description `attach_with_wizard` extends the default, on-load logic
 #' with interactions with the user whenever a decision cannot be made
 #' automatically and thus results in an error on package load.
 #'
@@ -43,7 +46,6 @@ close_session <- function (state) {
 #'        repository under; if a path, create if does not exist.
 #'
 #' @export
-#' @rdname chronicler-ui
 attach_with_wizard <- function (x = file.path(getwd(), 'repository')) {
   if (!is_rstudio()) {
     abort("currently wizard can be run only in RStudio")

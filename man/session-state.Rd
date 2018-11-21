@@ -16,6 +16,8 @@ init_ui(state)
 }
 \arguments{
 \item{state}{the global session state object.}
+
+\item{path}{path to \link[repository:repository]{repository::repository}.}
 }
 \description{
 \code{prepare_session} runs the logic of attaching to

@@ -11,13 +11,14 @@ browser_addin_binding <- function (.inBrowser = FALSE) {
 
 
 search_addin_binding <- function () {
-  if (!try_load(rstudioapi) || !try_load(search)) {
+  if (!try_load('rstudioapi') || !try_load('search')) {
     abort("failed to load rstudioapi or search, aborting")
   }
 
   path <- rstudioapi::selectFile(path = getwd())
   cinform(grey = glue("searching for artifact matching {path}"))
-  search::identify_file(path, state$repo)
+  search::identify_file(path, chronicler_state$repo)
 
   # TODO run browser and highlight the matching artifact
 }
+

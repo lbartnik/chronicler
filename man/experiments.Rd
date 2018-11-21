@@ -3,12 +3,9 @@
 \name{experiments}
 \alias{experiments}
 \alias{find_experiments}
-\alias{print.experiment}
 \title{Experiments.}
 \usage{
 find_experiments()
-
-\method{print}{experiment}(x, ...)
 }
 \value{
 \code{find_experiments} returns a container (see \link[utilities:as_container]{utilities::as_container})

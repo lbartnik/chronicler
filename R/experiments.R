@@ -24,7 +24,6 @@ find_experiments <- function () {
 }
 
 
-#' @rdname experiments
 #' @export
 print.experiment <- function (x, ...) {
   ccat0(grey = '# Experiment ', green = x$id, '\n')
