@@ -26,6 +26,8 @@ Collate:
   'addins.R'
   'chronicler.R'
   'dialog.R'
+  'experiments.R'
+  'forwards.R'
   'simulation-ext.R'
   'terms.R'
   'tracker.R'

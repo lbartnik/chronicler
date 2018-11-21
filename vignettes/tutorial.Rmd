@@ -1,10 +1,10 @@
 ---
-title: "Tutorial: Artifact Repository"
+title: "Chronicler: History of Objects in R"
 author: "Lukasz A. Bartnik"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Tutorial: Artifact Repository}
+  %\VignetteIndexEntry{Chronicler: History of Objects in R}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -118,8 +118,8 @@ from now on we will be talking about __artifacts__ and not __objects__.
 ## Tracker
 
 Let's start with the artifact tracker. Imagine that the commands below
-were run in a new (that is, empty) R session. This in an example from
-the `repository` package, see `?repository::iris_model` for details.
+were run in a new (that is, empty) R session; see `?iris_model` for more
+details on this example.
 
 ```{r cache=FALSE,include=FALSE}
 path <- system.file('scripts/iris-model.R', package = 'repository')
@@ -169,7 +169,7 @@ includes the R command which created them, their lineage (parent
 artifacts).
 
 ```{r cache=FALSE,include=FALSE,message=FALSE}
-chronicler:::attach_to_repository(repository::iris_model())
+chronicler:::attach_to_repository(iris_model())
 ```
 First, a trivial object search. The `iris` data set is assigned to
 variable `x` in the first line of the example.
@@ -182,15 +182,15 @@ Artifact `2b0c3bb1` is indeed a copy of the `iris` data set and a quick
 look at the expression confirms that it is the result of the first command
 in our example.
 
-Now we will search for a plot stored in a file. `repository` contains
+Now we will search for a plot stored in a file. `chronicler` contains
 such plot, one of the artifacts in the `iris_model()` example. Let's
 find the path and see the plot itself.
 
 ```{r iris-plot-path}
-path <- system.file('artifacts/iris-predictions.png', package = 'repository')
+path <- system.file('artifacts/iris-predictions.png', package = 'chronicler')
 ```
 ```{r iris-show-plot,results='asis',echo=FALSE}
-cat(sprintf("![Figure 3: Plot stored under repository/artifacts/iris-predictions.png](%s)", path))
+cat(sprintf("![Figure 3: Plot stored under chronicler/artifacts/iris-predictions.png](%s)", path))
 ```
 
 Searching by file contents reveals another artifacts, this time the
@@ -208,21 +208,24 @@ So, with `chronicler` tracking your work, you will always be able to
 find the exact sequence of commands that led to a plot or a model
 sitting somewhere in your project's folder.
 
+## Find Models
+
+A more focused version of search 
 
 
 # Browsing the Repository
 
-more elaborate example using `repository::london_meters`
+more elaborate example using `london_meters`
 
 ```{r attach,include=FALSE}
-chronicler:::attach_to_repository(repository::london_meters())
+chronicler:::attach_to_repository(london_meters())
 # TODO why does it have to be forwarded like that?
 artifacts <- chronicler::artifacts
 ```
 
 ```{r docker-attach,eval=FALSE}
 library(chronicler)
-attach_with_wizard(repository::london_meters())
+attach_with_wizard(london_meters())
 ```
 
 Code for this example attached in Appendix.
