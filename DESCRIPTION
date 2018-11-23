@@ -21,6 +21,7 @@ Imports:
   utilities
 Suggests:
   knitr,
+  prettycode,
   rstudioapi,
   testthat
 Collate:

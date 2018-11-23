@@ -26,12 +26,15 @@ find_experiments <- function () {
 
 #' @export
 print.experiment <- function (x, ...) {
+  # experiment id and expression
   ccat0(grey = '# Experiment ', green = x$id, '\n')
   cat0(x$expression, '\n')
 
+  # model description
   ccat0(default = 'grey', '\n# Model\n')
   cat0(x$description, '\n')
 
+  # parametrization path
   if (!length(x$path)) {
     ccat(default = 'grey', '\n# No parameters found for this experiment\n')
   } else {
@@ -52,11 +55,40 @@ print.experiment <- function (x, ...) {
       ccat0('\n', expr, '\n')
     })
   }
+
+  # outcomes
+  if (!length(x$outcomes)) {
+    ccat(grey = '\n# No downstream artifacts found\n')
+  } else {
+    ccat(grey = '\n# Downstream artifacts')
+    lapply(x$outcomes, function (outcome) {
+      ccat('\n*', green = shorten(outcome$id), outcome$description)
+    })
+  }
+
+  invisible(x)
 }
 
 
+as_experiment <- function (a) {
+  stopifnot(is_artifact(a))
 
+  path <- lapply(find_ancestors(a), as_parametrization)
+  path <- Filter(function(x)length(x$parameters), path)
 
+  outcomes <- find_descendants(a)
+
+  exp <- list(
+    expression  = a$expression,
+    description = a$description,
+    id          = a$id,
+    model       = artifact_data(a),
+    path        = path,
+    outcomes    = outcomes
+  )
+
+  structure(exp, class = 'experiment')
+}
 
 #' @importFrom rlang UQ
 find_models <- function (repo) {
@@ -69,22 +101,11 @@ find_ancestors <- function (a) {
   as_artifacts(repository:::artifact_store(a)) %>% filter(ancestor_of(UQ(a$id))) %>% read_artifacts
 }
 
-as_experiment <- function (a) {
+find_descendants <- function (a) {
   stopifnot(is_artifact(a))
-
-  path <- lapply(find_ancestors(a), as_parametrization)
-  path <- Filter(function(x)length(x$parameters), path)
-
-  exp <- list(
-    expression  = a$expression,
-    description = a$description,
-    id          = a$id,
-    model       = artifact_data(a),
-    path        = path
-  )
-
-  structure(exp, class = 'experiment')
+  as_artifacts(repository:::artifact_store(a)) %>% filter(descendant_of(UQ(a$id))) %>% read_artifacts
 }
+
 
 as_parametrization <- function (a) {
   stopifnot(is_artifact(a))

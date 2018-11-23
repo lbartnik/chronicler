@@ -1,0 +1,83 @@
+---
+title: "Chronicler: Integration with Knitr"
+author: "Lukasz A. Bartnik"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Chronicler: Integration with Knitr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+```{r setup, include=FALSE}
+library(knitr)
+library(utilities)
+
+knitr::opts_chunk$set(collapse = TRUE, comment = NA, prompt = FALSE, echo = TRUE)
+```
+
+```{r hooks, echo = FALSE}
+options(crayon.enabled = TRUE)
+knitr::knit_hooks$set(output = utilities::ansi_handler)
+knitr::knit_hooks$set(message = utilities::ansi_handler)
+
+# try old.hooks <- set_knit_hooks(knitr::knit_hooks)
+
+original_output_hook <- knit_hooks$get("output")
+knit_hooks$set(output = utilities::create_trimming_hook(original_output_hook))
+```
+
+```{r load-chronicler,message=FALSE,include=FALSE}
+options(chronicler.attach = FALSE)
+library(chronicler)
+```
+
+
+
+
+
+The R snippet below adds a new engine to `knitr`. In `knitr`, an engine
+is a mechanism of handling a code chunk in language other than R. In our
+case, we add a very simple `chronicler` engine. From now on, each code
+chunk marked as ````{chronicler}```` will be passed to the new engine.
+
+```{r engine}
+knitr::knit_engines$set(chronicler = function (options) {
+  id <- as.character(options$code)
+  stopifnot(is_artifact_id(id))
+  
+  knitted <- knit_artifact(id)
+  engine_output(options, id, knitted$out, knitted$extra)
+})
+```
+
+Let's see what exactly does it do. First, it casts the chunk's code as
+a string (`as.character`) and immediately checks if it matches the
+definition of an artifact identifier; if not, an exception is thrown.
+Then it passes control to `chronicler::knit_artifact` whose output
+is finally passed to `knitr::engine_output`. So what it is that
+`knit_artifact` does?
+
+It's actually pretty straightforward. It calls the default `print`
+method for the `"artifact"` class and captures its output into a HTML
+snippet. This is the result box which immediately follows the long
+string -- our artifact identifier.
+
+The second thing that `knit_artifact` does is capturing the sequence
+of R commands that resulted in the requested artifact. It formats and
+syntax-highlights each of these commands, and then puts them in another
+HTML box. This additional result box that is hidden by default and can
+be displayed by clicking on the `explain artifact 57f...` link. To hide
+the extended explanation just click on the link once again.
+
+
+```{r include=FALSE}
+chronicler:::attach_to_repository(london_meters())
+```
+
+```{chronicler}
+57fbe7553e11c7b0149040f5781c209b266ed637
+```
+

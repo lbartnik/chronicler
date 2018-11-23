@@ -1,0 +1,41 @@
+---
+title: "ML Pipelines"
+author: "Lukasz A. Bartnik"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ML Pipelines}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(utilities)
+
+knitr::opts_chunk$set(collapse = TRUE, comment = NA, prompt = FALSE, echo = TRUE)
+```
+
+# Introduction
+
+Machine Learning pipelines spotted in the wild seem to be designed more
+for __production environments__ and less for the __initial research__.
+It shows in the data and processing models underlying the designs of
+those pipelines, and in the APIs exposed to its users. One prominent
+example of ML pipelines is the the `ML Flow` package which we will
+analyze in this document.
+
+We will start with definitions of __production environments__ and
+__initial research__ and show why `ML Flow` is suited more for the
+former. Then we will describe a model of user experience suited
+better for the latter, implemented by the `chronicler` package.
+
+# Two types of ML
+
+## Initial research
+
+## Production environment
+
+# ML Flow
+
+# Chronicler

@@ -1,0 +1,25 @@
+# Experiment 57fbe7553e11c7b0149040f5781c209b266ed637
+m <- stats::lm(usage ~ hour:dow, x)
+
+# Model
+lm adjR2:0.33 AIC:7164 df:168
+
+# Parametrization
+
+* MAC004929
+meter_4929 <- hourly %>%
+  subset(meter == "MAC004929")
+
+* hours
+hourly <- input %>%
+  mutate(timestamp = floor_date(timestamp, "hours")) %>%
+  group_by(meter, timestamp) %>%
+  summarise(usage = sum(usage))
+
+* extdata/block_62.csv package:repository na:Null MAC004929 MAC000010 MAC004391 2013
+input <- system.file("extdata/block_62.csv", package = "repository") %>%
+  read_csv(na = "Null") %>%
+  rename(meter = LCLid, timestamp = tstp, usage = energy_kWh) %>%
+  filter(meter %in% c("MAC004929", "MAC000010", "MAC004391"), year(timestamp) == 2013)
+
+# No downstream artifacts found
