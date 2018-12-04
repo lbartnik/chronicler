@@ -1,0 +1,20 @@
+---
+title: "Chronicler: Running Examples"
+author: "Lukasz A. Bartnik"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Chronicler: Running Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Docker
+
+You can experiment with `chronicler`, test every idea described in this
+vignette and run every code snippet included below. In order to make it
+more easier, I created a Docker image which comes with necessary R
+packages, their dependencies, sample data and RStudio - all preinstalled,
+configured and ready to go.
+
+To run this docker image here is where you get it from; here is how you start it

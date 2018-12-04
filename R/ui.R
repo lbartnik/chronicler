@@ -43,10 +43,14 @@ history <- NULL
 init_ui <- function (state) {
   guard()
 
-  unlockBinding('artifacts', asNamespace('chronicler'))
-  assign('artifacts', artifacts_query(state), envir = asNamespace('chronicler'))
+  e <- as.environment('package:chronicler')
+  unlockBinding('artifacts', e)
+  # TODO state should be defined in chronicler; tracker should be its own object
+  #      held within the state; thus tracker should go into its own package
+  proxy <- new_query_proxy(chronicler_state$repo, 'artifacts')
+  assign('artifacts', proxy, envir = e)
   #history   <<- commits_query(state)
-  lockBinding('artifacts', asNamespace('chronicler'))
+  lockBinding('artifacts', e)
 }
 
 

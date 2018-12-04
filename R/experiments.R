@@ -62,7 +62,7 @@ print.experiment <- function (x, ...) {
   } else {
     ccat(grey = '\n# Downstream artifacts')
     lapply(x$outcomes, function (outcome) {
-      ccat('\n*', green = shorten(outcome$id), outcome$description)
+      ccat('\n*', green = toString(outcome$id), outcome$description)
     })
   }
 

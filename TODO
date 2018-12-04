@@ -1,3 +1,6 @@
+* bugfixes:
+  * load chronicler when there is no repo in the filesystem; currently it breaks
+
 1. break up Dockerfile into two stages:
    * chronicler-base: all deps
    * chronicler: github packages
