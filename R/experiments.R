@@ -27,7 +27,7 @@ find_experiments <- function () {
 #' @export
 print.experiment <- function (x, ...) {
   # experiment id and expression
-  ccat0(grey = '# Experiment ', green = x$id, '\n')
+  ccat0(grey = '# Experiment ', green = toString(x$id), '\n')
   cat0(x$expression, '\n')
 
   # model description
@@ -62,7 +62,8 @@ print.experiment <- function (x, ...) {
   } else {
     ccat(grey = '\n# Downstream artifacts')
     lapply(x$outcomes, function (outcome) {
-      ccat('\n*', green = toString(outcome$id), outcome$description)
+      ccat('\n*', green = toString(outcome$id),
+           if (artifact_is(outcome, 'plot')) '<plot>' else outcome$description)
     })
   }
 

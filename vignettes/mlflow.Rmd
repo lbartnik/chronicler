@@ -30,69 +30,164 @@ knit_hooks$set(output = utilities::create_trimming_hook(original_output_hook))
 ```{r load-chronicler,message=FALSE,include=FALSE}
 options(chronicler.attach = FALSE)
 library(chronicler)
+library(repository)
+library(utilities)
+library(withr)
 ```
 
 # ML Flow
 
-`ML Flow` introduces the notions of __runs__ and  __experiments__. A __run__
+`ML Flow` introduces the notions of **runs** and  **experiments**. A **run**
 is a single execution of an arbitrary program that, using `ML Flow`'s API,
 registers a model along with its parametrization and a number of artifacts:
-plots, printouts, data sets. An __experiment__ is a group of __runs__.
+plots, printouts, data sets. An **experiment** is a group of **runs**.
 
-`chronicler` does not have an explicit notion of __run__ or __experiment__
-but we can always find a suitable mapping. Since a __run__ contains
+`chronicler` does not have an explicit notion of **run** or **experiment**
+but we can always find a suitable mapping. Since a **run** contains
 a model, let's map each model collected by `chronicler` to a separate
-__run__. Furthermore, we will examine the sequence of R commands leading
-up to each of these models and extract or scalar values used in those
-commands: these will be the parameters reported to `ML Flow`. Finally,
-all artifacts downstream from each model will become `ML Flow` artifacts.
+**run**. Furthermore, we will examine the sequence of R commands leading
+up to each of these models and extract literals used or scalar variables
+referenced in those commands: these will be the parameters reported to
+`ML Flow`. Finally, all artifacts downstream from each model will become
+`ML Flow`'s artifacts.
+
+In this document `ML Flow`, we mean the [Python project](https://mlflow.org/)
+from [Databricks](https://databricks.com/). Conversely, `mlflow` means the
+[R package](https://github.com/mlflow/mlflow/tree/master/mlflow/R/mlflow)
+which is an interface to the actual `ML Flow` system.
 
 # Example
 
-Once again, let's assume we run the `london_meters()` example.
+Once again, following the _Introduction_ vignette, we will work with the
+`iris_model()` example (see `?chronicler::iris_model` for more details).
 
 ```{r include=FALSE}
-chronicler:::attach_to_repository(london_meters())
+chronicler:::attach_to_repository(iris_model())
 ```
 
+## Identify experiments: models + details
 
-The `find_experiments()` function searches for all artifacts that match
-the definition of a model and presents them together with their
-parametrization and downstream products. In our example there is one
-such model.
+The `chronicler::find_experiments()` function searches for all artifacts
+that match the definition of a model and presents them together with their
+parametrization and downstream artifacts (outcomes). In our example there
+is one such model.
 
 ```{r}
 find_experiments()
 ```
 
-Now all we need to do is build a function that maps the output of
-`find_experiments()` to `ML Flow` objects.
+As we said earlier, each experiment contains:
 
-```{r}
-register_with_mlflow <- function (experiment) {
-  with(mlflow_start_run(), {
-    # extract parameters...
-    prms <- unlist(lapply(experiment$path, `[[`, i = 'parameters'))
-    cnt  <- counter(1)
+  * the model itself
+  * the sequence of commands that lead from the first input data set
+    all the way to the model; literals present and scalar variables
+    referenced there are the model parameters
+  * the downstream artifacts, that is, objects and plots created using
+    the model
 
-    # ...log them and make sure they are all named
-    imap(prms, function (value, name) {
-      if (!nchar(name)) name <- paste0('parameter_', counter())
-      mlflow_log_param(name, value)
-    })
 
-    # log the model
-    mlflow_save_model(experiment$model)
-    
-    # finally, log all the downstream artifacts
-    mlflow_log_artifact() # TODO finish this
-  })
+Now need to build a function that maps the output of `find_experiments()`
+to concepts of `ML Flow` (and API calls in the `mlflow` package). But
+first we need to define two helper functions.
+
+
+## Extract details
+
+Our first helper function extracts the name and the value of each
+model parameter. To do so, it first flattens all parameters into a single
+vector and then makes sure they all have names. Each unnamed parameter
+receives a name `"parameter_<i>"` where `i` is its index in the flattened
+vector
+
+```{r helper-parameters-to-named-list}
+parameters_to_named_list <- function (experiment) {
+  # flatten all parameters in this experiment run
+  params <- unlist(lapply(experiment$path, `[[`, i = 'parameters'))
+  
+  # make sure all parameters have names
+  if (is.null(names(params))) {
+    names(params) <- paste0("parameter_", seq_along(params))
+  } else if (any(!nchar(names(params)))) {
+    i <- !nchar(names(params))
+    names(params)[i] <- paste0("parameter_", which(i))
+  }
+  
+  params
 }
 ```
+
+
+The **second helper** function iteraters over the downstream artifacts,
+which are called the _outcomes_, and saves each of them as a file. Plots
+are saved as PNGs and everything else is serialized as RDS (see `?saveRDS`).
+The helper returns the path to each newly created file.
+
+```{r helper-artifact-to-file}
+artifact_to_file <- function (artifact) {
+  # if a plot, put in a PNG and report
+  if (artifact_is(artifact, 'plot')) {
+    path <- tempfile(fileext = ".png")
+    with_png(path, plot(artifact_data(artifact)))
+  } else {
+  # if an R object, serialize to RDS and report
+    path <- tempfile(fileext = ".rds")
+    saveRDS(artifact_data(artifact), path)
+  }
+  stopifnot(file.exists(path))
+  path
+}
+```
+
+
+## Mapping from `chronicler` to `mlflow`
+
+Now we can finally report all experiments found in the repository to ML Flow.
+Each __experiment__ from `chronicler`'s world is translated into a ML Flow's
+__run__. Naming might be a little confusing, especially that ML Flow also uses
+the term expriment - for an entity that groups multiple runs. As soon as we
+wrap our minds around this slightly abusive overloading of names, we can look
+at the final function, `register_with_mlflow`.
+
+It begins with a call to `mlflow_start_run` followed immediately with a
+"destructor" that ends the ML Flow run. Then we proceed to report the three
+categories of data:
+
+  * the parameters, extracted with `parameters_to_named_list`
+  * the model itself, wrapped in a `crate` (a mandatory wrapper, see `?mlflow::crate`)
+  * the downstream artifacts, passed to `mlflow` as file paths, prepared by `artifact_to_file`
+
+```{r define-register-function}
+register_with_mlflow <- function (experiment) {
+  # start a new "run", a ML Flow grouping concept
+  mlflow_start_run()
+  on.exit(mlflow_end_run())
+  
+  # extract parameters...
+  params <- parameters_to_named_list(experiment)
+  cat("Logging parameter: ", paste(names(params), '=', unlist(params), collapse = ', '), '\n')
+  
+  imap(params, function(value, name) mlflow_log_param(name, value))
+
+  # log the model
+  mlflow_save_model(crate(~ stats::predict(model, .x), model = experiment$model))
+  
+  # finally, log all the downstream artifacts
+  paths <- lapply(experiment$outcomes, artifact_to_file)
+
+  # report to mlflow
+  cat("Logging", length(paths), "artifacts\n")
+  lapply(paths, mlflow_log_artifact)
+}
+```
+
+## Report to ML Flow
 
 All that is now left to do is to call `register_with_mlflow` for each
 experiment in the repository.
 
-```{r eval=FALSE}
-lapply(find_experiments(), register_with_mlflow)
+```{r register-all-experiments}
+library(mlflow)
+
+mlflow_set_experiment("Exported from chronicler")
+invisible(lapply(find_experiments(), register_with_mlflow))
 ```

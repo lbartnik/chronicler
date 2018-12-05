@@ -9,12 +9,41 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Docker
+In order to experiment with `chronicler` and test ideas described in the
+[__introductory__](https://htmlpreview.github.io/?https://github.com/lbartnik/chronicler/blob/master/inst/doc/introduction.html) vignette you need to install the `chronicler` package and its
+dependencies. It might be a lengthy process, especially that some of
+the third-party dependencies (like [`imager`](https://cran.r-project.org/package=imager))
+have their own dependencies and sometimes require the development versions
+of certain Linux packages.
 
-You can experiment with `chronicler`, test every idea described in this
-vignette and run every code snippet included below. In order to make it
-more easier, I created a Docker image which comes with necessary R
-packages, their dependencies, sample data and RStudio - all preinstalled,
-configured and ready to go.
+If you'd like to save yourself that work, please read on to see how to
+run the pre-configured Docker image. The image comes with `chronicler`
+and RStudio pre-installed, and also contains a sample artifact repository.
 
-To run this docker image here is where you get it from; here is how you start it
+
+# Docker in Linux
+
+The `chronicler`'s Docker image is available from [Docker Hub](https://hub.docker.com).
+Go to [lbartnik/chronicler](https://hub.docker.com/r/lbartnik/chronicler/)
+to see the Docker Hub repository. It is configured to be run in Linux.
+
+You need to have Docker installed in your system; follow the official
+[Docker installtion guide](https://docs.docker.com/install/).
+
+Now that you have Docker installed, pull the `chronicler` image.
+
+```bash
+docker pull lbartnik/chronicler:18.04
+```
+
+Now you are ready to run RStudio from Docker with `chronicler` installed.
+[Here is a script](https://raw.githubusercontent.com/lbartnik/chronicler/master/inst/docker/rstudio-chronicler)
+that makes it easy: it runs some basic checks and then starts RStudio
+inside Docker with access to your X server.
+
+```bash
+SCRIPT=rstudio-chronicler
+IMAGE=https://raw.githubusercontent.com/lbartnik/chronicler/master/inst/docker/${SCRIPT}
+wget ${IMAGE} -O ./${SCRIPT}
+bash ./${SCRIPT}
+```

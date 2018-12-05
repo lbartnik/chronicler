@@ -12,7 +12,7 @@
 
 <meta name="author" content="Lukasz A. Bartnik" />
 
-<meta name="date" content="2018-11-22" />
+<meta name="date" content="2018-12-04" />
 
 <title>Chronicler: Integration with ML Flow</title>
 
@@ -278,70 +278,127 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Chronicler: Integration with ML Flow</h1>
 <h4 class="author"><em>Lukasz A. Bartnik</em></h4>
-<h4 class="date"><em>2018-11-22</em></h4>
+<h4 class="date"><em>2018-12-04</em></h4>
 
 
 
 <div id="ml-flow" class="section level1">
 <h1>ML Flow</h1>
 <p><code>ML Flow</code> introduces the notions of <strong>runs</strong> and <strong>experiments</strong>. A <strong>run</strong> is a single execution of an arbitrary program that, using <code>ML Flow</code>’s API, registers a model along with its parametrization and a number of artifacts: plots, printouts, data sets. An <strong>experiment</strong> is a group of <strong>runs</strong>.</p>
-<p><code>chronicler</code> does not have an explicit notion of <strong>run</strong> or <strong>experiment</strong> but we can always find a suitable mapping. Since a <strong>run</strong> contains a model, let’s map each model collected by <code>chronicler</code> to a separate <strong>run</strong>. Furthermore, we will examine the sequence of R commands leading up to each of these models and extract or scalar values used in those commands: these will be the parameters reported to <code>ML Flow</code>. Finally, all artifacts downstream from each model will become <code>ML Flow</code> artifacts.</p>
+<p><code>chronicler</code> does not have an explicit notion of <strong>run</strong> or <strong>experiment</strong> but we can always find a suitable mapping. Since a <strong>run</strong> contains a model, let’s map each model collected by <code>chronicler</code> to a separate <strong>run</strong>. Furthermore, we will examine the sequence of R commands leading up to each of these models and extract literals used or scalar variables referenced in those commands: these will be the parameters reported to <code>ML Flow</code>. Finally, all artifacts downstream from each model will become <code>ML Flow</code>’s artifacts.</p>
+<p>In this document <code>ML Flow</code>, we mean the <a href="https://mlflow.org/">Python project</a> from <a href="https://databricks.com/">Databricks</a>. Conversely, <code>mlflow</code> means the <a href="https://github.com/mlflow/mlflow/tree/master/mlflow/R/mlflow">R package</a> which is an interface to the actual <code>ML Flow</code> system.</p>
 </div>
 <div id="example" class="section level1">
 <h1>Example</h1>
-<p>Once again, let’s assume we run the <code>london_meters()</code> example.</p>
-<p>The <code>find_experiments()</code> function searches for all artifacts that match the definition of a model and presents them together with their parametrization and downstream products. In our example there is one such model.</p>
+<p>Once again, following the <em>Introduction</em> vignette, we will work with the <code>iris_model()</code> example (see <code>?chronicler::iris_model</code> for more details).</p>
+<div id="identify-experiments-models-details" class="section level2">
+<h2>Identify experiments: models + details</h2>
+<p>The <code>chronicler::find_experiments()</code> function searches for all artifacts that match the definition of a model and presents them together with their parametrization and downstream artifacts (outcomes). In our example there is one such model.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">find_experiments</span>()</a></code></pre></div>
 <pre class="r-output"><code><span style="color: #949494;"># A container of 1 element</span><span>
-</span><span style="color: #949494;"># Experiment </span><span style="color: #00BB00;">57fbe7553e11c7b0149040f5781c209b266ed637</span><span>
-m &lt;- stats::lm(usage ~ hour:dow, x)
+</span><span style="color: #949494;"># Experiment </span><span style="color: #00BB00;">dcd273b7d708f0bb838b33ab374e6e07f7322268</span><span>
+m &lt;- lm(Virginica ~ Sepal.Area + Petal.Area, virginica)
 </span><span style="color: #949494;">
 # Model
-</span><span>lm adjR2:0.33 AIC:7164 df:168
+</span><span>lm adjR2:0.68 AIC:34 df:3
 </span><span style="color: #949494;">
 # Parametrization
 </span><span>
-* </span><span style="color: #BBBB00;">MAC004929</span><span>
-</span><span style="color: #949494;">meter_4929 &lt;- hourly %&gt;%
-  subset(meter == &quot;</span><span style="color: #00BBBB;">MAC004929</span><span style="color: #949494;">&quot;)</span><span>
-
-* </span><span style="color: #BBBB00;">hours</span><span>
-</span><span style="color: #949494;">hourly &lt;- input %&gt;%
-  mutate(timestamp = floor_date(timestamp, &quot;</span><span style="color: #00BBBB;">hours</span><span style="color: #949494;">&quot;)) %&gt;%
-  group_by(meter, timestamp) %&gt;%
-  summarise(usage = sum(usage))</span><span>
-
-* </span><span style="color: #BBBB00;">extdata/block_62.csv</span><span> </span><span style="color: #00BB00;">package</span><span>:</span><span style="color: #BBBB00;">repository</span><span> </span><span style="color: #00BB00;">na</span><span>:</span><span style="color: #BBBB00;">Null</span><span> </span><span style="color: #BBBB00;">MAC004929</span><span> </span><span style="color: #BBBB00;">MAC000010</span><span> </span><span style="color: #BBBB00;">MAC004391</span><span> </span><span style="color: #BBBB00;">2013</span><span>
-</span><span style="color: #949494;">input &lt;- system.file(&quot;</span><span style="color: #00BBBB;">extdata/block_62.csv</span><span style="color: #949494;">&quot;, package = &quot;</span><span style="color: #00BBBB;">repository</span><span style="color: #949494;">&quot;) %&gt;%
-  read_csv(na = &quot;</span><span style="color: #00BBBB;">Null</span><span style="color: #949494;">&quot;) %&gt;%
-  rename(meter = LCLid, timestamp = tstp, usage = energy_kWh) %&gt;%
-  filter(meter %in% c(&quot;</span><span style="color: #00BBBB;">MAC004929</span><span style="color: #949494;">&quot;, &quot;</span><span style="color: #00BBBB;">MAC000010</span><span style="color: #949494;">&quot;, &quot;</span><span style="color: #00BBBB;">MAC004391</span><span style="color: #949494;">&quot;), year(timestamp) == </span><span style="color: #00BBBB;">2013</span><span style="color: #949494;">)</span><span>
+* </span><span style="color: #BBBB00;">virginica</span><span>
+</span><span style="color: #949494;"> &lt;- x %&gt;%
+  mutate(Virginica = Species == &quot;</span><span style="color: #00BBBB;">virginica</span><span style="color: #949494;">&quot;)</span><span>
 </span><span style="color: #949494;">
-# No downstream artifacts found
+# Downstream artifacts</span><span>
+* </span><span style="color: #00BB00;">3b9c6d54</span><span> data.frame[150, 9]
+* </span><span style="color: #00BB00;">0f1105f2</span><span> &lt;plot&gt;
+* </span><span style="color: #00BB00;">909a1c6d</span><span> &lt;plot&gt;
+</span></code></pre>
+<p>As we said earlier, each experiment contains:</p>
+<ul>
+<li>the model itself</li>
+<li>the sequence of commands that lead from the first input data set all the way to the model; literals present and scalar variables referenced there are the model parameters</li>
+<li>the downstream artifacts, that is, objects and plots created using the model</li>
+</ul>
+<p>Now need to build a function that maps the output of <code>find_experiments()</code> to concepts of <code>ML Flow</code> (and API calls in the <code>mlflow</code> package). But first we need to define two helper functions.</p>
+</div>
+<div id="extract-details" class="section level2">
+<h2>Extract details</h2>
+<p>Our first helper function extracts the name and the value of each model parameter. To do so, it first flattens all parameters into a single vector and then makes sure they all have names. Each unnamed parameter receives a name <code>&quot;parameter_&lt;i&gt;&quot;</code> where <code>i</code> is its index in the flattened vector</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">parameters_to_named_list &lt;-<span class="st"> </span><span class="cf">function</span> (experiment) {</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="co"># flatten all parameters in this experiment run</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">  params &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(experiment<span class="op">$</span>path, <span class="st">`</span><span class="dt">[[</span><span class="st">`</span>, <span class="dt">i =</span> <span class="st">'parameters'</span>))</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">  </a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">  <span class="co"># make sure all parameters have names</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">  <span class="cf">if</span> (<span class="kw">is.null</span>(<span class="kw">names</span>(params))) {</a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">    <span class="kw">names</span>(params) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;parameter_&quot;</span>, <span class="kw">seq_along</span>(params))</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">  } <span class="cf">else</span> <span class="cf">if</span> (<span class="kw">any</span>(<span class="op">!</span><span class="kw">nchar</span>(<span class="kw">names</span>(params)))) {</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">    i &lt;-<span class="st"> </span><span class="op">!</span><span class="kw">nchar</span>(<span class="kw">names</span>(params))</a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">    <span class="kw">names</span>(params)[i] &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;parameter_&quot;</span>, <span class="kw">which</span>(i))</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">  }</a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">  </a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">  params</a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">}</a></code></pre></div>
+<p>The <strong>second helper</strong> function iteraters over the downstream artifacts, which are called the <em>outcomes</em>, and saves each of them as a file. Plots are saved as PNGs and everything else is serialized as RDS (see <code>?saveRDS</code>). The helper returns the path to each newly created file.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">artifact_to_file &lt;-<span class="st"> </span><span class="cf">function</span> (artifact) {</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">  <span class="co"># if a plot, put in a PNG and report</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">  <span class="cf">if</span> (<span class="kw">artifact_is</span>(artifact, <span class="st">'plot'</span>)) {</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">    path &lt;-<span class="st"> </span><span class="kw">tempfile</span>(<span class="dt">fileext =</span> <span class="st">&quot;.png&quot;</span>)</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">    <span class="kw">with_png</span>(path, <span class="kw">plot</span>(<span class="kw">artifact_data</span>(artifact)))</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">  } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">  <span class="co"># if an R object, serialize to RDS and report</span></a>
+<a class="sourceLine" id="cb3-8" data-line-number="8">    path &lt;-<span class="st"> </span><span class="kw">tempfile</span>(<span class="dt">fileext =</span> <span class="st">&quot;.rds&quot;</span>)</a>
+<a class="sourceLine" id="cb3-9" data-line-number="9">    <span class="kw">saveRDS</span>(<span class="kw">artifact_data</span>(artifact), path)</a>
+<a class="sourceLine" id="cb3-10" data-line-number="10">  }</a>
+<a class="sourceLine" id="cb3-11" data-line-number="11">  <span class="kw">stopifnot</span>(<span class="kw">file.exists</span>(path))</a>
+<a class="sourceLine" id="cb3-12" data-line-number="12">  path</a>
+<a class="sourceLine" id="cb3-13" data-line-number="13">}</a></code></pre></div>
+</div>
+<div id="mapping-from-chronicler-to-mlflow" class="section level2">
+<h2>Mapping from <code>chronicler</code> to <code>mlflow</code></h2>
+<p>Now we can finally report all experiments found in the repository to ML Flow. Each <strong>experiment</strong> from <code>chronicler</code>’s world is translated into a ML Flow’s <strong>run</strong>. Naming might be a little confusing, especially that ML Flow also uses the term expriment - for an entity that groups multiple runs. As soon as we wrap our minds around this slightly abusive overloading of names, we can look at the final function, <code>register_with_mlflow</code>.</p>
+<p>It begins with a call to <code>mlflow_start_run</code> followed immediately with a “destructor” that ends the ML Flow run. Then we proceed to report the three categories of data:</p>
+<ul>
+<li>the parameters, extracted with <code>parameters_to_named_list</code></li>
+<li>the model itself, wrapped in a <code>crate</code> (a mandatory wrapper, see <code>?mlflow::crate</code>)</li>
+<li>the downstream artifacts, passed to <code>mlflow</code> as file paths, prepared by <code>artifact_to_file</code></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">register_with_mlflow &lt;-<span class="st"> </span><span class="cf">function</span> (experiment) {</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  <span class="co"># start a new &quot;run&quot;, a ML Flow grouping concept</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">  <span class="kw">mlflow_start_run</span>()</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">  <span class="kw">on.exit</span>(<span class="kw">mlflow_end_run</span>())</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">  </a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">  <span class="co"># extract parameters...</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">  params &lt;-<span class="st"> </span><span class="kw">parameters_to_named_list</span>(experiment)</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">  <span class="kw">cat</span>(<span class="st">&quot;Logging parameter: &quot;</span>, <span class="kw">paste</span>(<span class="kw">names</span>(params), <span class="st">'='</span>, <span class="kw">unlist</span>(params), <span class="dt">collapse =</span> <span class="st">', '</span>), <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">  </a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">  <span class="kw">imap</span>(params, <span class="cf">function</span>(value, name) <span class="kw">mlflow_log_param</span>(name, value))</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">  <span class="co"># log the model</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13">  <span class="kw">mlflow_save_model</span>(<span class="kw">crate</span>(<span class="op">~</span><span class="st"> </span>stats<span class="op">::</span><span class="kw">predict</span>(model, .x), <span class="dt">model =</span> experiment<span class="op">$</span>model))</a>
+<a class="sourceLine" id="cb4-14" data-line-number="14">  </a>
+<a class="sourceLine" id="cb4-15" data-line-number="15">  <span class="co"># finally, log all the downstream artifacts</span></a>
+<a class="sourceLine" id="cb4-16" data-line-number="16">  paths &lt;-<span class="st"> </span><span class="kw">lapply</span>(experiment<span class="op">$</span>outcomes, artifact_to_file)</a>
+<a class="sourceLine" id="cb4-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb4-18" data-line-number="18">  <span class="co"># report to mlflow</span></a>
+<a class="sourceLine" id="cb4-19" data-line-number="19">  <span class="kw">cat</span>(<span class="st">&quot;Logging&quot;</span>, <span class="kw">length</span>(paths), <span class="st">&quot;artifacts</span><span class="ch">\n</span><span class="st">&quot;</span>)</a>
+<a class="sourceLine" id="cb4-20" data-line-number="20">  <span class="kw">lapply</span>(paths, mlflow_log_artifact)</a>
+<a class="sourceLine" id="cb4-21" data-line-number="21">}</a></code></pre></div>
+</div>
+<div id="report-to-ml-flow" class="section level2">
+<h2>Report to ML Flow</h2>
+<p>All that is now left to do is to call <code>register_with_mlflow</code> for each experiment in the repository.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">library</span>(mlflow)</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="kw">mlflow_set_experiment</span>(<span class="st">&quot;Exported from chronicler&quot;</span>)</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="kw">invisible</span>(<span class="kw">lapply</span>(<span class="kw">find_experiments</span>(), register_with_mlflow))</a></code></pre></div>
+<pre class="r-output"><code>Logging parameter:  parameter_1 = virginica 
+Logging 3 artifacts
+<span style="color: #BB0000;">2018/12/04 19:23:04 INFO mlflow.store.cli: Logged artifact from local file /tmp/RtmpKeLV4J/file3ede1a7de173.rds to artifact_path=None
+2018/12/04 19:23:05 INFO mlflow.store.cli: Logged artifact from local file /tmp/RtmpKeLV4J/file3ede6edbe31b.png to artifact_path=None
+2018/12/04 19:23:06 INFO mlflow.store.cli: Logged artifact from local file /tmp/RtmpKeLV4J/file3ede6dd2ff3e.png to artifact_path=None
 </span><span>
 </span></code></pre>
-<p>Now all we need to do is build a function that maps the output of <code>find_experiments()</code> to <code>ML Flow</code> objects.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">register_with_mlflow &lt;-<span class="st"> </span><span class="cf">function</span> (experiment) {</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="kw">with</span>(<span class="kw">mlflow_start_run</span>(), {</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="co"># extract parameters...</span></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">    prms &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(experiment<span class="op">$</span>path, <span class="st">`</span><span class="dt">[[</span><span class="st">`</span>, <span class="dt">i =</span> <span class="st">'parameters'</span>))</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">    cnt  &lt;-<span class="st"> </span><span class="kw">counter</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7">    <span class="co"># ...log them and make sure they are all named</span></a>
-<a class="sourceLine" id="cb2-8" data-line-number="8">    <span class="kw">imap</span>(prms, <span class="cf">function</span> (value, name) {</a>
-<a class="sourceLine" id="cb2-9" data-line-number="9">      <span class="cf">if</span> (<span class="op">!</span><span class="kw">nchar</span>(name)) name &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">'parameter_'</span>, <span class="kw">counter</span>())</a>
-<a class="sourceLine" id="cb2-10" data-line-number="10">      <span class="kw">mlflow_log_param</span>(name, value)</a>
-<a class="sourceLine" id="cb2-11" data-line-number="11">    })</a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13">    <span class="co"># log the model</span></a>
-<a class="sourceLine" id="cb2-14" data-line-number="14">    <span class="kw">mlflow_save_model</span>(experiment<span class="op">$</span>model)</a>
-<a class="sourceLine" id="cb2-15" data-line-number="15">    </a>
-<a class="sourceLine" id="cb2-16" data-line-number="16">    <span class="co"># finally, log all the downstream artifacts</span></a>
-<a class="sourceLine" id="cb2-17" data-line-number="17">    <span class="kw">mlflow_log_artifact</span>() <span class="co"># </span><span class="al">TODO</span><span class="co"> finish this</span></a>
-<a class="sourceLine" id="cb2-18" data-line-number="18">  })</a>
-<a class="sourceLine" id="cb2-19" data-line-number="19">}</a></code></pre></div>
-<p>All that is now left to do is to call <code>register_with_mlflow</code> for each experiment in the repository.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">lapply</span>(<span class="kw">find_experiments</span>(), register_with_mlflow)</a></code></pre></div>
+</div>
 </div>
 
 

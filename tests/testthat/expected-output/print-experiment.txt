@@ -1,4 +1,4 @@
-# Experiment 57fbe7553e11c7b0149040f5781c209b266ed637
+# Experiment 57fbe755
 m <- stats::lm(usage ~ hour:dow, x)
 
 # Model

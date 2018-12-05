@@ -12,7 +12,7 @@ if [ ! -d "${X11_SOCKET}" ]; then
   exit 1
 fi
 
-CHRONICLER_IMAGE=chronicler
+CHRONICLER_IMAGE=lbartnik/chronicler:18.10
 
-${DOCKER} run -ti -e DISPLAY=$DISPLAY -v "${X11_SOCKET}:${X11_SOCKET}" "${CHRONICLER_IMAGE}"
+${DOCKER} run -ti -e DISPLAY=$DISPLAY -v "${X11_SOCKET}:${X11_SOCKET}" --device=/dev/dri:/dev/dri "${CHRONICLER_IMAGE}" $*
 

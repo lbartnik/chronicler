@@ -1,6 +1,10 @@
 # repository of artifacts
 repository/
 
+# mlflow
+**/mlruns/
+**/model/
+
 # History files
 .Rhistory
 .Rapp.history

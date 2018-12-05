@@ -20,10 +20,12 @@ Imports:
   storage,
   utilities
 Suggests:
+  carrier,
   knitr,
   prettycode,
   rstudioapi,
-  testthat
+  testthat,
+  withr
 Collate:
   'addins.R'
   'chronicler.R'

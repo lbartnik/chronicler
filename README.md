@@ -1,5 +1,5 @@
-Binary History for R
-====================
+History of Objects for R
+========================
 
 
 | CRAN version    | Travis build status   | AppVeyor | Coverage |
@@ -7,7 +7,44 @@ Binary History for R
 | [![CRAN version](http://www.r-pkg.org/badges/version/chronicler)](https://cran.r-project.org/package=chronicler) | [![Build Status](https://travis-ci.org/lbartnik/chronicler.svg?branch=master)](https://travis-ci.org/lbartnik/chronicler) | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/lbartnik/chronicler?branch=master&svg=true)](https://ci.appveyor.com/project/lbartnik/chronicler) | [![codecov](https://codecov.io/gh/lbartnik/chronicler/branch/master/graph/badge.svg)](https://codecov.io/gh/lbartnik/chronicler)|
 
 
-# Other packages (components)
+`chronicler` implements the concept of __history of objects__. It is different
+from R's standard __history of commands__ in that alongside each command it
+stores all objects that it creates, together with the information about their
+lineage. (Lineage of an object is the tree of its parent objects.)
+
+The best way to learn about `chronicler` and see how history of objects can
+be helpful in data analysis, see ["introduction"](https://htmlpreview.github.io/?https://github.com/lbartnik/chronicler/blob/master/inst/doc/introduction.html)
+vignette. If you wish to give it a try in a pre-installed and pre-configured
+run-time environment, see
+["running the examples"](https://htmlpreview.github.io/?https://github.com/lbartnik/chronicler/blob/master/inst/doc/running-examples.html)
+vignette.
+
+
+`chronicler` is in fact an umbrella-package: it comes with just a little code
+to organize the work of a number of lower-level packages. `chronicler` declares
+a dependency on
+[`storage`](https://github.com/lbartnik/storage),
+[`repository`](https://github.com/lbartnik/repository), 
+[`ui`](https://github.com/lbartnik/ui),
+[`browser`](https://github.com/lbartnik/browser),
+[`search`](https://github.com/lbartnik/search),
+[`defer`](https://github.com/lbartnik/defer) and
+[`utilities`](https://github.com/lbartnik/utilities).
+
+
+
+# Vignettes
+
+  * [Introduction](https://htmlpreview.github.io/?https://github.com/lbartnik/chronicler/blob/master/inst/doc/introduction.html) - this is how __history of objects__ help in data exploration; it explains the idea in depth and shows practical examples of interacting with `chronicler`
+  * [Integration with ML Flow](https://htmlpreview.github.io/?https://github.com/lbartnik/chronicler/blob/master/inst/doc/mlflow.html) - exporting models and their relevant artifacts to [ML Flow](https://mlflow.org/) through the [mlflow](https://cran.r-project.org/package=mlflow) R package
+  * [Running examples](https://htmlpreview.github.io/?https://github.com/lbartnik/chronicler/blob/master/inst/doc/running-examples.html) a pre-configured envioronment to give `chronicler` a go without too much prior work
+
+# Other documentation
+
+  * [Graphical artifact browser](https://lbartnik.github.io/experiment/) - an older attempt at browsing artifacts with Shiny and JS
+
+
+# Components (dependencies of `chronicler`)
 
 Other packages implementing the *repository of artifacts*:
   * [repository](https://github.com/lbartnik/repository) - middle layer with "business logic"
@@ -17,17 +54,6 @@ Other packages implementing the *repository of artifacts*:
   * [browser](https://github.com/lbartnik/browser) - graphical artifact browser, implemented as an RStudio add-in
   * [search](https://github.com/lbartnik/search) - match artifacts against arbitrary files (data and plots)
   * [utilities](https://github.com/lbartnik/utilities) - a set of shared utility functions
-
-
-# Documentation
-
-  * [user interface tutorial](https://lbartnik.github.io/chronicler/tutorial.html) - ways and APIs to interact with the repository
-  * [work plan](https://lbartnik.github.io/chronicler/plan.html) - current state of affairs and ideas for research
-  * [graphical artifact browser](https://lbartnik.github.io/experiment/) - an older attempt at browsing artifacts with Shiny and JS
-
-If GitHub pages is down, documents are also available under link below; save locally and open in browser:
-  * [user interface tutorial](https://raw.githubusercontent.com/lbartnik/chronicler/master/inst/doc/tutorial.html)
-  * [work plan](https://github.com/lbartnik/chronicler/blob/master/inst/doc/plan.html)
 
 
 # FAQ
