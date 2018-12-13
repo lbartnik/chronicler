@@ -3,5 +3,6 @@
 .travis.yml
 appveyor.yml
 
+mlruns
 mlflow
 model

@@ -133,9 +133,9 @@ inner workings if we have some sample data already collected. Thus, we
 start by loading the package and building a very simple regression model.
 To find more details about this example open `?iris_model` manual page.
 
-```{r cache=FALSE,include=FALSE}
-path <- system.file('scripts/iris-model.R', package = 'repository')
-read_chunk(path)
+```{r read-iris-model-chunk,include=FALSE,cache=FALSE}
+rc <- knitr::read_chunk
+rc(system.file('scripts/iris-model.R', package = 'repository'))
 ```
 ```{r fake-load-chronicler,eval=FALSE,results="hold"}
 library(chronicler)

@@ -43,14 +43,25 @@ history <- NULL
 init_ui <- function (state) {
   guard()
 
-  e <- as.environment('package:chronicler')
-  unlockBinding('artifacts', e)
   # TODO state should be defined in chronicler; tracker should be its own object
   #      held within the state; thus tracker should go into its own package
   proxy <- new_query_proxy(chronicler_state$repo, 'artifacts')
-  assign('artifacts', proxy, envir = e)
+  assign_locked(parent.env(environment()), 'artifacts', proxy)
+
+  # only available when fully loaded: when called via wizard
+  e <- tryCatch(as.environment('package:chronicler'), error = function(e)NULL)
+  if (!is.null(e)) {
+    assign_locked(e, 'artifacts', proxy)
+  }
+
   #history   <<- commits_query(state)
-  lockBinding('artifacts', e)
+}
+
+
+assign_locked <- function (env, name, value) {
+  unlockBinding(name, env)
+  assign(name, value, envir = env)
+  lockBinding(name, env)
 }
 
 
